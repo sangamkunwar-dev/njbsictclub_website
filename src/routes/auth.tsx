@@ -20,7 +20,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import {
   usernameToEmail,
-  MEMBER_EMAIL_DOMAIN,
   CLUB_ADMIN_EMAIL,
   CLUB_ADMIN_MEMBER_ID,
 } from "@/lib/member-accounts";
@@ -247,20 +246,23 @@ function ForgotPasswordDialog() {
     }
     setBusy(true);
     try {
-      const isRealEmail = value.includes("@") && !value.endsWith(`@${MEMBER_EMAIL_DOMAIN}`);
-      if (isRealEmail) {
+      const isEmail = value.includes("@");
+      if (isEmail) {
         const { error } = await supabase.auth.resetPasswordForEmail(value, {
-          redirectTo: `${window.location.origin}/reset-password`,
+          redirectTo:
+            import.meta.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
+            `${window.location.origin}/reset-password`,
         });
         if (error) throw new Error(error.message);
         toast.success("Reset link sent — check your inbox.");
       } else {
         const isMemberId = /^(njb|njbs|member)[-_ ]?[a-z0-9]+$/i.test(value);
-        const username = isMemberId
-          ? undefined
-          : value.endsWith(`@${MEMBER_EMAIL_DOMAIN}`) ? value.split("@")[0] : value;
-        await requestReset({ data: { username, memberId: isMemberId ? value.toUpperCase().replace(/[ ]+/g, "-") : undefined, note } });
-        toast.success("Recovery request sent. The club admin will send a secure reset link to your registered email.");
+        if (!isMemberId) {
+          await requestReset({ data: { username: value, note } });
+          toast.success("Recovery request sent. The club admin will contact you securely.");
+        } else {
+          throw new Error("Please enter the email address registered to your member account. Member ID reset requests are temporarily unavailable.");
+        }
       }
       setOpen(false);
       setIdentifier("");

@@ -33,8 +33,13 @@ function ResetPasswordPage() {
     let cancelled = false;
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
     const errorDescription = hash.get("error_description");
-    if (errorDescription) {
-      toast.error(errorDescription.replace(/\+/g, " "));
+    const errorCode = hash.get("error_code");
+    if (errorDescription || errorCode) {
+      toast.error(
+        errorCode === "otp_expired"
+          ? "This reset link has expired. Please request a new password reset email."
+          : errorDescription?.replace(/\+/g, " ") || "This reset link is invalid. Please request a new one.",
+      );
       window.history.replaceState(null, "", window.location.pathname);
     }
 
