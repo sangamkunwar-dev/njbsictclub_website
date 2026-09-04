@@ -30,15 +30,28 @@ function ResetPasswordPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    const hash = window.location.hash;
-    const isRecovery = hash.includes("type=recovery");
+    let cancelled = false;
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const errorDescription = hash.get("error_description");
+    if (errorDescription) {
+      toast.error(errorDescription.replace(/\+/g, " "));
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+
+    const { data: sub } = supabase.auth.onAuthStateChange((event: string, session: unknown) => {
+      if (!cancelled && (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") && session) {
+        setReady(true);
+      }
+    });
+
     void supabase.auth.getSession().then(({ data }: { data: { session: unknown } }) => {
-      setReady(isRecovery || Boolean(data.session));
+      if (!cancelled) setReady(Boolean(data.session));
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((event: string) => {
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true);
-    });
-    return () => sub.subscription.unsubscribe();
+
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const submit = async (e: React.FormEvent) => {
