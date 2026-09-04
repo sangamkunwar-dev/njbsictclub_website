@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /auth
+Disallow: /reset-password
+
+Sitemap: https://njbsictclub.vercel.app/sitemap.xml

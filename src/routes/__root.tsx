@@ -78,6 +78,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "ICT Club of NJBS — Building the future together" },
       { name: "description", content: "The official ICT Club of Nawa Jyoti English Boarding School. Projects, hackathons, workshops, and a community for young technologists." },
       { name: "author", content: "ICT Club NJBS" },
+      { name: "google-site-verification", content: "ApobhGV9jIEedP8jCjznWNKUkIZGJvuZ18Ma04Tdjrw" },
+      { name: "robots", content: "index, follow, max-image-preview:large" },
+      { property: "og:url", content: "https://njbsictclub.vercel.app/" },
+      { property: "og:site_name", content: "ICT Club of NJBS" },
       { property: "og:title", content: "ICT Club of NJBS — Building the future together" },
       { property: "og:description", content: "The official ICT Club of Nawa Jyoti English Boarding School. Projects, hackathons, workshops, and a community for young technologists." },
       { property: "og:type", content: "website" },
@@ -91,6 +95,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         : []),
     ],
     links: [
+      { rel: "canonical", href: "https://njbsictclub.vercel.app/" },
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
