@@ -145,17 +145,24 @@ function EventsPage() {
       </section>
 
       <section>
-        <h2 className="text-2xl font-bold font-display mb-6 flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-muted-foreground" /> Past Events
-        </h2>
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <Badge variant="outline" className="mb-2 border-accent/40 bg-accent/10 text-accent-foreground">Archive</Badge>
+            <h2 className="flex items-center gap-2 text-2xl font-bold font-display">
+              <span className="size-2 rounded-full bg-accent" /> Past Events
+            </h2>
+          </div>
+          <p className="text-sm text-muted-foreground">A look back at our community highlights.</p>
+        </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {past.map((e) => (
-            <Card key={e.id} className="overflow-hidden border-border/50 p-0 opacity-90 hover:opacity-100 transition-opacity">
-              <div className="aspect-[16/9] overflow-hidden bg-muted grayscale hover:grayscale-0 transition-all">
-                <img src={e.image} alt={e.title} className="h-full w-full object-cover" />
+            <Card key={e.id} className="group overflow-hidden border-accent/30 bg-accent/5 p-0 shadow-card transition-all hover:-translate-y-1 hover:border-accent/60 hover:bg-accent/10">
+              <div className="relative aspect-[16/9] overflow-hidden bg-muted">
+                <img src={e.image} alt={e.title} className="size-full object-cover transition-transform duration-500 group-hover:scale-105" onError={(event) => { event.currentTarget.style.display = "none"; }} />
+                <Badge variant="outline" className="absolute left-3 top-3 border-accent/50 bg-background/85 text-accent-foreground backdrop-blur">Past event</Badge>
               </div>
-              <div className="p-4">
-                <h3 className="font-semibold">{e.title}</h3>
+              <div className="border-t border-accent/20 p-4">
+                <h3 className="font-semibold text-foreground">{e.title}</h3>
                 <p className="text-xs text-muted-foreground mt-1">
                   {new Date(e.date).toLocaleDateString(undefined, { dateStyle: "medium" })} · {e.attendees} attended
                 </p>

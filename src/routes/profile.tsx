@@ -177,12 +177,17 @@ function ProfilePage() {
 
 
   return (
-    <main className="min-h-screen bg-hero"><div className="container mx-auto max-w-5xl px-3 py-8 sm:px-4 md:px-6 md:py-12">
-      <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <Badge variant="secondary" className="mb-2">Your profile</Badge>
-          <h1 className="text-3xl md:text-4xl font-bold font-display">{user.name}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{user.email} · <span className="capitalize">{user.role}</span>{user.memberId && ` · `}{user.memberId && <span className="font-mono text-primary">{user.memberId}</span>}</p>
+    <main className="min-h-screen bg-hero"><div className="container mx-auto max-w-6xl px-4 py-8 sm:px-6 md:py-12">
+      <div className="mb-8 flex flex-col gap-6 rounded-3xl border border-border/60 bg-card/80 p-5 shadow-card backdrop-blur sm:p-7 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-4">
+          <div className="size-16 shrink-0 overflow-hidden rounded-2xl bg-primary/10 ring-1 ring-primary/20">
+            {profile.avatar || user.avatar ? <img src={profile.avatar || user.avatar || ""} className="size-full object-cover" alt={`${user.name}'s profile photo`} onError={(event) => { event.currentTarget.style.display = "none"; }} /> : <div className="flex size-full items-center justify-center text-xl font-bold text-primary">{user.name.charAt(0).toUpperCase()}</div>}
+          </div>
+          <div>
+            <Badge variant="secondary" className="mb-2">Your profile</Badge>
+            <h1 className="text-3xl font-bold font-display tracking-tight md:text-4xl">{user.name}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">{user.email} · <span className="capitalize">{user.role}</span>{user.memberId && ` · `}{user.memberId && <span className="font-mono text-primary">{user.memberId}</span>}</p>
+          </div>
         </div>
         <div className="flex gap-2">
           {(user.role === "member" || user.role === "admin") && (
@@ -195,11 +200,12 @@ function ProfilePage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
-        <Card className="p-6 border-border/50">
+        <Card className="border-border/60 bg-card/90 p-6 shadow-card">
           <Label className="mb-2 block">Profile photo</Label>
-          <div className="flex flex-col items-center gap-3">
-            <div className="h-32 w-32 rounded-full ring-2 ring-primary/20 overflow-hidden bg-muted flex items-center justify-center">
-              {profile.avatar ? <img src={profile.avatar} className="h-full w-full object-cover" alt="Avatar" /> : (user.avatar ? <img src={user.avatar} className="h-full w-full object-cover" alt="" /> : <Upload className="h-6 w-6 text-muted-foreground" />)}
+          <p className="mb-5 text-sm leading-6 text-muted-foreground">Use a clear headshot so other club members can recognize you.</p>
+          <div className="flex flex-col items-center gap-4">
+            <div className="size-36 overflow-hidden rounded-3xl bg-primary/10 ring-4 ring-primary/10">
+              {profile.avatar ? <img src={profile.avatar} className="size-full object-cover" alt="Avatar" onError={(event) => { event.currentTarget.style.display = "none"; }} /> : (user.avatar ? <img src={user.avatar} className="size-full object-cover" alt="Avatar" onError={(event) => { event.currentTarget.style.display = "none"; }} /> : <Upload className="mx-auto mt-14 size-6 text-muted-foreground" />)}
             </div>
             <label className="cursor-pointer text-xs text-primary hover:underline">
               Upload new
