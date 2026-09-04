@@ -23,6 +23,7 @@ import {
 } from "@/lib/store";
 import { MemberAccountsPanel } from "@/components/member-accounts-panel";
 import { toast } from "sonner";
+import { imageUploadHelp, uploadImage } from "@/lib/image-upload";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin Panel — ICT Club" }, { name: "robots", content: "noindex" }] }),
@@ -455,6 +456,17 @@ function AdminPage() {
   );
 }
 
+function ImagePicker({ label, value, onChange, folder, owner }: { label: string; value: string; onChange: (value: string) => void; folder: "events" | "projects" | "members" | "partners"; owner: string }) {
+  const [uploading, setUploading] = useState(false);
+  const handleFile = async (file: File) => {
+    setUploading(true);
+    try { onChange(await uploadImage(file, folder, owner)); toast.success(`${label} uploaded`); }
+    catch (error) { toast.error(error instanceof Error ? error.message : "Image upload failed"); }
+    finally { setUploading(false); }
+  };
+  return <div className="space-y-2"><Label>{label}</Label><div className="flex items-center gap-3"><div className="size-16 shrink-0 overflow-hidden rounded-lg border bg-muted">{value ? <img src={value} alt="Preview" className="size-full object-cover" onError={(event) => { event.currentTarget.style.display = "none"; }} /> : <div className="flex size-full items-center justify-center text-xs text-muted-foreground">No image</div>}</div><label className="cursor-pointer rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">{uploading ? "Uploading…" : "Upload image"}<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="hidden" disabled={uploading} onChange={(event) => event.target.files?.[0] && void handleFile(event.target.files[0])} /></label></div><Input value={value} onChange={(event) => onChange(event.target.value)} placeholder="Or paste an image URL" /><p className="text-[11px] text-muted-foreground">{imageUploadHelp}</p></div>;
+}
+
 /* ---------- Project dialog ---------- */
 function ProjectDialog({ project, onSave, trigger }: { project?: Project; onSave: (p: Project) => void; trigger: React.ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -479,7 +491,7 @@ function ProjectDialog({ project, onSave, trigger }: { project?: Project; onSave
         <form onSubmit={submit} className="space-y-3">
           <div><Label>Title</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
           <div><Label>Description</Label><Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-          <div><Label>Image URL</Label><Input value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} /></div>
+          <ImagePicker label="Project image" value={form.image} onChange={(image) => setForm({ ...form, image })} folder="projects" owner={form.id} />
           <div className="grid grid-cols-2 gap-2">
             <div><Label>Live URL</Label><Input value={form.liveUrl} onChange={(e) => setForm({ ...form, liveUrl: e.target.value })} /></div>
             <div><Label>Docs URL</Label><Input value={form.docsUrl} onChange={(e) => setForm({ ...form, docsUrl: e.target.value })} /></div>
@@ -535,7 +547,7 @@ function EventDialog({ event, onSave, trigger }: { event?: Event; onSave: (e: Ev
             <div><Label>Date & time</Label><Input type="datetime-local" value={dateForInput} onChange={(e) => setForm({ ...form, date: new Date(e.target.value).toISOString() })} /></div>
             <div><Label>Location</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>
           </div>
-          <div><Label>Image URL</Label><Input value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} /></div>
+          <ImagePicker label="Event image" value={form.image} onChange={(image) => setForm({ ...form, image })} folder="events" owner={form.id} />
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label>Status</Label>
@@ -637,7 +649,7 @@ function MemberDialog({ member, onSave, trigger }: { member?: TeamMember; onSave
             <div><Label>Department</Label><Input value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div><Label>Avatar URL</Label><Input value={form.avatar} onChange={(e) => setForm({ ...form, avatar: e.target.value })} /></div>
+            <ImagePicker label="Member photo" value={form.avatar} onChange={(avatar) => setForm({ ...form, avatar })} folder="members" owner={form.id} />
             <div><Label>Order</Label><Input type="number" value={form.order} onChange={(e) => setForm({ ...form, order: Number(e.target.value) || 99 })} /></div>
           </div>
           <div><Label>Bio</Label><Textarea rows={2} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} /></div>
