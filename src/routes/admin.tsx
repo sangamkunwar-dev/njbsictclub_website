@@ -57,8 +57,8 @@ function AdminPage() {
   if (user?.role !== "admin") return null;
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-[1440px] flex-col gap-6 px-4 py-6 sm:px-6 md:px-8 md:py-8 lg:flex-row lg:gap-8">
-      <div className="flex w-full shrink-0 flex-col gap-5 rounded-2xl border border-border/70 bg-card p-4 shadow-sm lg:sticky lg:top-6 lg:h-[calc(100vh-8rem)] lg:w-full">
+    <div className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-[1440px] flex-col gap-6 px-4 py-6 sm:px-6 md:px-8 md:py-8">
+      <div className="flex w-full shrink-0 flex-col gap-5 rounded-2xl border border-border/70 bg-card p-4 shadow-sm lg:sticky lg:top-6 lg:h-[calc(100vh-8rem)]">
         <div className="flex items-center gap-3 border-b border-border/70 pb-4">
           <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
             <Shield className="size-5" />
@@ -70,8 +70,8 @@ function AdminPage() {
         </div>
         <div className="hidden text-xs font-medium uppercase tracking-wider text-muted-foreground lg:block">Workspace</div>
 
-      <Tabs value={activeSection} onValueChange={setActiveSection} className="flex min-h-0 flex-1 flex-col gap-6 lg:flex-row lg:items-start">
-        <TabsList aria-label="Admin sections" className="flex h-auto max-h-[calc(100vh-15rem)] w-full flex-nowrap justify-start gap-1 overflow-x-auto bg-transparent p-0 lg:h-auto lg:w-56 lg:flex-col lg:items-stretch lg:overflow-y-auto lg:overflow-x-hidden lg:pr-1 [&>button]:shrink-0">
+      <Tabs value={activeSection} onValueChange={setActiveSection} className="flex min-h-0 flex-1 flex-col gap-5 lg:flex-row lg:items-start">
+        <TabsList aria-label="Admin sections" className="flex h-auto max-h-[calc(100vh-15rem)] w-full flex-nowrap justify-start gap-1 overflow-x-auto bg-muted/40 p-1 lg:h-auto lg:w-56 lg:shrink-0 lg:flex-col lg:items-stretch lg:overflow-y-auto lg:overflow-x-hidden lg:rounded-xl lg:bg-muted/40 lg:p-2 [&>button]:min-h-10 [&>button]:shrink-0 [&>button]:justify-start [&>button]:rounded-lg [&>button]:px-3 [&>button]:text-left">
           <TabsTrigger value="projects"><FolderKanban className="h-4 w-4 mr-1.5" />Projects</TabsTrigger>
           <TabsTrigger value="events"><Calendar className="h-4 w-4 mr-1.5" />Events</TabsTrigger>
           <TabsTrigger value="team"><Users className="h-4 w-4 mr-1.5" />Team</TabsTrigger>
@@ -85,7 +85,7 @@ function AdminPage() {
           <TabsTrigger value="inbox"><Inbox className="h-4 w-4 mr-1.5" />Inbox {inbox.rows.length > 0 && <Badge className="ml-1.5 h-4 min-w-4 px-1 text-[10px]">{inbox.rows.length}</Badge>}</TabsTrigger>
         </TabsList>
 
-        <div className="min-w-0 flex-1 lg:overflow-y-auto">
+        <div className="min-h-0 min-w-0 flex-1 lg:overflow-y-auto lg:pr-1">
         <TabsContent value="projects" className="mt-0 min-w-0 flex-1">
           <Card className="p-4 sm:p-6 border-border/50">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
