@@ -41,6 +41,7 @@ function AdminPage() {
   const [meetings, setMeetings] = useMeetingsStore();
   const [bTasks, setBTasks] = useBroadcastTasksStore();
   const [partners, setPartners] = usePartnersStore();
+  const [activeSection, setActiveSection] = useState("projects");
   const inbox = useSubmissions("contact");
   const regs = useSubmissions("event_registration");
   const apps = useSubmissions("membership_application");
@@ -56,8 +57,9 @@ function AdminPage() {
   if (user?.role !== "admin") return null;
 
   return (
-    <div className="container mx-auto px-3 sm:px-4 md:px-6 py-10 md:py-16 max-w-6xl">
-      <div className="mb-10 flex items-center gap-3">
+    <div className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-7xl flex-col gap-6 px-3 py-6 sm:px-4 md:flex-row md:gap-8 md:px-6 md:py-10">
+      <div className="flex items-center gap-3">
+
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-primary shadow-elegant">
           <Shield className="h-5 w-5 text-primary-foreground" />
         </div>
@@ -67,8 +69,8 @@ function AdminPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="projects">
-        <TabsList className="flex h-auto w-full flex-nowrap justify-start gap-1 overflow-x-auto sm:flex-wrap [&>button]:shrink-0">
+      <Tabs value={activeSection} onValueChange={setActiveSection} className="flex min-h-0 flex-1 flex-col gap-6 md:flex-row md:items-start">
+        <TabsList aria-label="Admin sections" className="flex h-auto max-h-[calc(100vh-12rem)] w-full flex-nowrap justify-start gap-1 overflow-x-auto bg-transparent p-0 md:h-auto md:w-56 md:flex-col md:items-stretch md:overflow-y-auto md:overflow-x-hidden md:pr-2 [&>button]:shrink-0">
           <TabsTrigger value="projects"><FolderKanban className="h-4 w-4 mr-1.5" />Projects</TabsTrigger>
           <TabsTrigger value="events"><Calendar className="h-4 w-4 mr-1.5" />Events</TabsTrigger>
           <TabsTrigger value="team"><Users className="h-4 w-4 mr-1.5" />Team</TabsTrigger>
@@ -82,7 +84,7 @@ function AdminPage() {
           <TabsTrigger value="inbox"><Inbox className="h-4 w-4 mr-1.5" />Inbox {inbox.rows.length > 0 && <Badge className="ml-1.5 h-4 min-w-4 px-1 text-[10px]">{inbox.rows.length}</Badge>}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="projects" className="mt-6">
+        <TabsContent value="projects" className="mt-0 min-w-0 flex-1 md:overflow-y-auto">
           <Card className="p-4 sm:p-6 border-border/50">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <h2 className="font-semibold">Manage projects ({projects.length})</h2>
@@ -118,7 +120,7 @@ function AdminPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="events" className="mt-6">
+        <TabsContent value="events" className="mt-0 min-w-0 flex-1 md:overflow-y-auto">
           <Card className="p-4 sm:p-6 border-border/50">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <h2 className="font-semibold">Manage events ({events.length})</h2>
@@ -157,7 +159,7 @@ function AdminPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="team" className="mt-6">
+        <TabsContent value="team" className="mt-0 min-w-0 flex-1 md:overflow-y-auto">
           <Card className="p-4 sm:p-6 border-border/50">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <h2 className="font-semibold">Team members ({members.length})</h2>
@@ -196,7 +198,7 @@ function AdminPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="partners" className="mt-6">
+        <TabsContent value="partners" className="mt-0 min-w-0 flex-1 md:overflow-y-auto">
           <Card className="p-4 sm:p-6 border-border/50">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div>
@@ -238,11 +240,11 @@ function AdminPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="accounts" className="mt-6">
+        <TabsContent value="accounts" className="mt-0 min-w-0 flex-1 md:overflow-y-auto">
           <MemberAccountsPanel />
         </TabsContent>
 
-        <TabsContent value="meetings" className="mt-6">
+        <TabsContent value="meetings" className="mt-0 min-w-0 flex-1 md:overflow-y-auto">
           <Card className="p-4 sm:p-6 border-border/50">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <h2 className="font-semibold">Club meetings ({meetings.length}) — shown on member dashboards</h2>
@@ -281,7 +283,7 @@ function AdminPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="tasks" className="mt-6">
+        <TabsContent value="tasks" className="mt-0 min-w-0 flex-1 md:overflow-y-auto">
           <Card className="p-4 sm:p-6 border-border/50">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <h2 className="font-semibold">Broadcast tasks ({bTasks.length}) — pushed to all member dashboards</h2>
@@ -323,7 +325,7 @@ function AdminPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="registrations" className="mt-6">
+        <TabsContent value="registrations" className="mt-0 min-w-0 flex-1 md:overflow-y-auto">
           <Card className="p-4 sm:p-6 border-border/50">
             <h2 className="font-semibold mb-4">Event registrations ({regs.rows.length})</h2>
             {regs.rows.length === 0 ? (
@@ -361,7 +363,7 @@ function AdminPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="applications" className="mt-6">
+        <TabsContent value="applications" className="mt-0 min-w-0 flex-1 md:overflow-y-auto">
           <Card className="p-4 sm:p-6 border-border/50">
             <h2 className="font-semibold mb-4">Membership applications ({apps.rows.length})</h2>
             {apps.rows.length === 0 ? (
@@ -398,7 +400,7 @@ function AdminPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="subscribers" className="mt-6">
+        <TabsContent value="subscribers" className="mt-0 min-w-0 flex-1 md:overflow-y-auto">
           <Card className="p-4 sm:p-6 border-border/50">
             <h2 className="font-semibold mb-4">Event notification subscribers ({subs.rows.length})</h2>
             {subs.rows.length === 0 ? (
@@ -420,7 +422,7 @@ function AdminPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="inbox" className="mt-6">
+        <TabsContent value="inbox" className="mt-0 min-w-0 flex-1 md:overflow-y-auto">
           <Card className="p-4 sm:p-6 border-border/50">
             <h2 className="font-semibold mb-4">Contact form messages</h2>
             {inbox.rows.length === 0 ? (
