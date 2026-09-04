@@ -1,17 +1,21 @@
-import { supabase } from "@/integrations/supabase/client";
-
 const MAX_IMAGE_SIZE = 8 * 1024 * 1024;
+
+function readAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => typeof reader.result === "string" ? resolve(reader.result) : reject(new Error("Could not read this image."));
+    reader.onerror = () => reject(new Error("Could not read this image."));
+    reader.readAsDataURL(file);
+  });
+}
 
 export async function uploadImage(file: File, folder: "profiles" | "events" | "projects" | "members" | "partners", userId = "shared") {
   if (!file.type.startsWith("image/")) throw new Error("Please choose an image file.");
   if (file.size > MAX_IMAGE_SIZE) throw new Error("Images must be smaller than 8 MB.");
 
-  const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const path = `${folder}/${userId}/${crypto.randomUUID()}.${extension}`;
-  const { error } = await supabase.storage.from("club-images").upload(path, file, { upsert: false, contentType: file.type, cacheControl: "3600" });
-  if (error) throw error;
-  const { data } = supabase.storage.from("club-images").getPublicUrl(path);
-  return data.publicUrl;
+  // Keep uploads self-contained when Supabase Storage is not connected.
+  // The profile editor stores this data URL with the rest of the profile and never displays it as text.
+  return readAsDataUrl(file);
 }
 
 export function imageFallback(name: string) {
