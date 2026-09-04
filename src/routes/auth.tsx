@@ -23,7 +23,6 @@ import {
   CLUB_ADMIN_EMAIL,
   CLUB_ADMIN_MEMBER_ID,
 } from "@/lib/member-accounts";
-import { requestMemberPasswordReset } from "@/lib/member-accounts.functions";
 
 import { toast } from "sonner";
 import { useAuth } from "@/components/auth-provider";
@@ -231,7 +230,6 @@ function SignInForm() {
 }
 
 function ForgotPasswordDialog() {
-  const requestReset = useServerFn(requestMemberPasswordReset);
   const [open, setOpen] = useState(false);
   const [identifier, setIdentifier] = useState("");
   const [note, setNote] = useState("");
@@ -247,23 +245,14 @@ function ForgotPasswordDialog() {
     setBusy(true);
     try {
       const isEmail = value.includes("@");
-      if (isEmail) {
-        const { error } = await supabase.auth.resetPasswordForEmail(value, {
-          redirectTo:
-            import.meta.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-            `${window.location.origin}/reset-password`,
-        });
-        if (error) throw new Error(error.message);
-        toast.success("Reset link sent — check your inbox.");
-      } else {
-        const isMemberId = /^(njb|njbs|member)[-_ ]?[a-z0-9]+$/i.test(value);
-        if (!isMemberId) {
-          await requestReset({ data: { username: value, note } });
-          toast.success("Recovery request sent. The club admin will contact you securely.");
-        } else {
-          throw new Error("Please enter the email address registered to your member account. Member ID reset requests are temporarily unavailable.");
-        }
-      }
+      const loginEmail = isEmail ? value : usernameToEmail(value);
+      const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
+        redirectTo:
+          import.meta.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
+          `${window.location.origin}/reset-password`,
+      });
+      if (error) throw new Error(error.message);
+      toast.success("Reset link sent — check your inbox.");
       setOpen(false);
       setIdentifier("");
       setNote("");
@@ -297,8 +286,7 @@ function ForgotPasswordDialog() {
               placeholder="you@example.com or NJBS121348789"
             />
             <p className="mt-1 text-[10px] text-muted-foreground">
-              Email accounts receive a secure reset link. Member IDs and usernames are sent to the club
-              admin, who sends the reset link to the member&apos;s registered email.
+Use your email, member ID, or username. A secure reset link will be sent to the account email.
             </p>
           </div>
           <div>
