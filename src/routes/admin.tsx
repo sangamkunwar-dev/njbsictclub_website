@@ -88,21 +88,22 @@ function AdminPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-3 py-5 sm:px-5 lg:flex-row-reverse lg:gap-5 lg:px-6">
+      <div className="mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-3 py-5 sm:px-5 lg:flex-row lg:gap-5 lg:px-6">
         <aside className="flex w-full shrink-0 flex-col rounded-2xl border border-border/60 bg-[var(--admin-sidebar-surface)] p-3 shadow-card lg:sticky lg:top-5 lg:h-[calc(100vh-2.5rem)] lg:max-h-[calc(100vh-2.5rem)] lg:w-72 lg:overflow-y-auto lg:overscroll-contain admin-scrollbar">
-          <div className="flex items-center gap-3 border-b border-border/60 px-2 pb-4">
+          <div className="flex flex-col items-start gap-3 border-b border-border/60 px-2 pb-4">
             <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-primary shadow-elegant">
               <Shield className="size-5 text-primary-foreground" />
             </div>
             <div className="min-w-0">
-              <Badge variant="secondary" className="mb-1 text-[10px] uppercase tracking-wider">Superuser</Badge>
-              <h1 className="truncate font-display text-lg font-bold">Admin Panel</h1>
+              <Badge variant="secondary" className="mb-2 text-[10px] uppercase tracking-wider">Superuser</Badge>
+              <h1 className="font-display text-xl font-bold tracking-tight">Admin Panel</h1>
+              <p className="mt-1 text-xs text-muted-foreground">Club management workspace</p>
             </div>
           </div>
           <div className="px-2 py-4 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Workspace</div>
         </aside>
 
-      <Tabs defaultValue="projects" className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row-reverse lg:gap-5">
+      <Tabs defaultValue="projects" className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-5">
         <TabsList className="flex h-auto w-full shrink-0 flex-row justify-start gap-1 overflow-x-auto rounded-xl bg-muted/60 p-1 lg:h-auto lg:w-64 lg:flex-col lg:items-stretch lg:overflow-y-auto lg:overflow-x-hidden lg:bg-transparent lg:p-0 [&>button]:justify-start [&>button]:rounded-lg [&>button]:px-3 [&>button]:py-2.5 [&>button]:text-sm [&>button]:font-medium [&>button]:transition-colors [&>button][data-state=active]:bg-primary/10 [&>button][data-state=active]:text-primary [&>button][data-state=active]:shadow-none">
           <TabsTrigger value="projects"><FolderKanban className="h-4 w-4 mr-1.5" />Projects</TabsTrigger>
           <TabsTrigger value="events"><Calendar className="h-4 w-4 mr-1.5" />Events</TabsTrigger>
