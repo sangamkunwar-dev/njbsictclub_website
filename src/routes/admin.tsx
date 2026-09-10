@@ -1,8 +1,20 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  FolderKanban, Calendar, Users, Inbox, Mail, Trash2, Plus, Pencil,
-  Megaphone, CalendarClock, Ticket, Handshake, ClipboardList, KeyRound,
+  FolderKanban,
+  Calendar,
+  Users,
+  Inbox,
+  Mail,
+  Trash2,
+  Plus,
+  Pencil,
+  Megaphone,
+  CalendarClock,
+  Ticket,
+  Handshake,
+  ClipboardList,
+  KeyRound,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,22 +23,49 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from "@/components/auth-provider";
 import {
-  useProjectsStore, useEventsStore, useMembersStore,
-  useMeetingsStore, useBroadcastTasksStore, usePartnersStore,
-  useSubmissions, pushNotification, uid, DEFAULT_ACCESS_MINUTES,
-  type Meeting, type BroadcastTask, type Partner, type CustomField,
-  type Project, type Event, type TeamMember,
+  useProjectsStore,
+  useEventsStore,
+  useMembersStore,
+  useMeetingsStore,
+  useBroadcastTasksStore,
+  usePartnersStore,
+  useSubmissions,
+  pushNotification,
+  uid,
+  DEFAULT_ACCESS_MINUTES,
+  type Meeting,
+  type BroadcastTask,
+  type Partner,
+  type CustomField,
+  type Project,
+  type Event,
+  type TeamMember,
 } from "@/lib/store";
 import { MemberAccountsPanel } from "@/components/member-accounts-panel";
 import { toast } from "sonner";
 import { imageUploadHelp, uploadImage } from "@/lib/image-upload";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin Panel — ICT Club" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [{ title: "Admin Panel — ICT Club" }, { name: "robots", content: "noindex" }],
+  }),
   component: AdminPage,
 });
 
@@ -60,7 +99,9 @@ function formatAdminDate(value: string) {
 function formatAdminDateOnly(value: string) {
   if (value.includes("T")) return formatAdminDate(value);
   const [year, month, day] = value.split("-").map(Number);
-  return year && month && day ? `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}` : "Invalid date";
+  return year && month && day
+    ? `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`
+    : "Invalid date";
 }
 
 function AdminPage() {
@@ -89,420 +130,837 @@ function AdminPage() {
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-3 py-5 sm:px-5 lg:flex-row lg:gap-5 lg:px-6">
-      <Tabs defaultValue="projects" className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-5">
-        <TabsList className="flex h-auto w-full shrink-0 flex-row justify-start gap-1 overflow-x-auto rounded-xl bg-muted/60 p-1 lg:h-auto lg:w-64 lg:flex-col lg:items-stretch lg:overflow-y-auto lg:overflow-x-hidden lg:bg-transparent lg:p-0 [&>button]:justify-start [&>button]:rounded-lg [&>button]:px-3 [&>button]:py-2.5 [&>button]:text-sm [&>button]:font-medium [&>button]:transition-colors [&>button][data-state=active]:bg-primary/10 [&>button][data-state=active]:text-primary [&>button][data-state=active]:shadow-none">
-          <TabsTrigger value="projects"><FolderKanban className="h-4 w-4 mr-1.5" />Projects</TabsTrigger>
-          <TabsTrigger value="events"><Calendar className="h-4 w-4 mr-1.5" />Events</TabsTrigger>
-          <TabsTrigger value="team"><Users className="h-4 w-4 mr-1.5" />Team</TabsTrigger>
-          <TabsTrigger value="partners"><Handshake className="h-4 w-4 mr-1.5" />Collaborate</TabsTrigger>
-          <TabsTrigger value="accounts"><KeyRound className="h-4 w-4 mr-1.5" />Member logins</TabsTrigger>
-          <TabsTrigger value="meetings"><CalendarClock className="h-4 w-4 mr-1.5" />Meetings</TabsTrigger>
-          <TabsTrigger value="tasks"><Megaphone className="h-4 w-4 mr-1.5" />Tasks</TabsTrigger>
-          <TabsTrigger value="registrations"><Ticket className="h-4 w-4 mr-1.5" />RSVPs {regs.rows.length > 0 && <Badge className="ml-1.5 h-4 min-w-4 px-1 text-[10px]">{regs.rows.length}</Badge>}</TabsTrigger>
-          <TabsTrigger value="applications"><ClipboardList className="h-4 w-4 mr-1.5" />Applications {apps.rows.length > 0 && <Badge className="ml-1.5 h-4 min-w-4 px-1 text-[10px]">{apps.rows.length}</Badge>}</TabsTrigger>
-          <TabsTrigger value="subscribers"><Mail className="h-4 w-4 mr-1.5" />Subscribers {subs.rows.length > 0 && <Badge className="ml-1.5 h-4 min-w-4 px-1 text-[10px]">{subs.rows.length}</Badge>}</TabsTrigger>
-          <TabsTrigger value="inbox"><Inbox className="h-4 w-4 mr-1.5" />Inbox {inbox.rows.length > 0 && <Badge className="ml-1.5 h-4 min-w-4 px-1 text-[10px]">{inbox.rows.length}</Badge>}</TabsTrigger>
-        </TabsList>
+        <Tabs
+          defaultValue="projects"
+          className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-5"
+        >
+          <TabsList className="flex h-auto w-full shrink-0 flex-row justify-start gap-1 overflow-x-auto rounded-xl bg-muted/60 p-1 lg:h-auto lg:w-64 lg:flex-col lg:items-stretch lg:overflow-y-auto lg:overflow-x-hidden lg:bg-transparent lg:p-0 [&>button]:justify-start [&>button]:rounded-lg [&>button]:px-3 [&>button]:py-2.5 [&>button]:text-sm [&>button]:font-medium [&>button]:transition-colors [&>button][data-state=active]:bg-primary/10 [&>button][data-state=active]:text-primary [&>button][data-state=active]:shadow-none">
+            <TabsTrigger value="projects">
+              <FolderKanban className="h-4 w-4 mr-1.5" />
+              Projects
+            </TabsTrigger>
+            <TabsTrigger value="events">
+              <Calendar className="h-4 w-4 mr-1.5" />
+              Events
+            </TabsTrigger>
+            <TabsTrigger value="team">
+              <Users className="h-4 w-4 mr-1.5" />
+              Team
+            </TabsTrigger>
+            <TabsTrigger value="partners">
+              <Handshake className="h-4 w-4 mr-1.5" />
+              Collaborate
+            </TabsTrigger>
+            <TabsTrigger value="accounts">
+              <KeyRound className="h-4 w-4 mr-1.5" />
+              Member logins
+            </TabsTrigger>
+            <TabsTrigger value="meetings">
+              <CalendarClock className="h-4 w-4 mr-1.5" />
+              Meetings
+            </TabsTrigger>
+            <TabsTrigger value="tasks">
+              <Megaphone className="h-4 w-4 mr-1.5" />
+              Tasks
+            </TabsTrigger>
+            <TabsTrigger value="registrations">
+              <Ticket className="h-4 w-4 mr-1.5" />
+              RSVPs{" "}
+              {regs.rows.length > 0 && (
+                <Badge className="ml-1.5 h-4 min-w-4 px-1 text-[10px]">{regs.rows.length}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="applications">
+              <ClipboardList className="h-4 w-4 mr-1.5" />
+              Applications{" "}
+              {apps.rows.length > 0 && (
+                <Badge className="ml-1.5 h-4 min-w-4 px-1 text-[10px]">{apps.rows.length}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="subscribers">
+              <Mail className="h-4 w-4 mr-1.5" />
+              Subscribers{" "}
+              {subs.rows.length > 0 && (
+                <Badge className="ml-1.5 h-4 min-w-4 px-1 text-[10px]">{subs.rows.length}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="inbox">
+              <Inbox className="h-4 w-4 mr-1.5" />
+              Inbox{" "}
+              {inbox.rows.length > 0 && (
+                <Badge className="ml-1.5 h-4 min-w-4 px-1 text-[10px]">{inbox.rows.length}</Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
 
-        <div className="min-w-0 flex-1 overflow-y-auto overscroll-contain admin-scrollbar lg:h-[calc(100vh-2.5rem)] lg:pr-1">
-        <TabsContent value="projects" className="mt-0">
-          <Card className="p-4 sm:p-6 border-border/50">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <h2 className="font-semibold">Manage projects ({projects.length})</h2>
-              <ProjectDialog
-                onSave={(p) => {
-                  setProjects((prev) => [p, ...prev]);
-                  void pushNotification({ kind: "project", title: "New project", body: p.title, link: "/projects" });
-                  toast.success("Project added");
-                }}
-                trigger={<Button size="sm" className="bg-gradient-primary"><Plus className="h-4 w-4 mr-1" />New project</Button>}
-              />
-            </div>
-            <div className="divide-y divide-border">
-              {projects.map((p) => (
-                <div key={p.id} className="flex items-center gap-4 py-3">
-                  <img src={p.image} className="h-12 w-16 rounded object-cover" alt="" />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{p.title}</div>
-                    <div className="text-xs text-muted-foreground truncate">{p.category} · {p.team.join(", ")}</div>
-                  </div>
+          <div className="min-w-0 flex-1 overflow-y-auto overscroll-contain admin-scrollbar lg:h-[calc(100vh-2.5rem)] lg:pr-1">
+            <TabsContent value="projects" className="mt-0">
+              <Card className="p-4 sm:p-6 border-border/50">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                  <h2 className="font-semibold">Manage projects ({projects.length})</h2>
                   <ProjectDialog
-                    project={p}
-                    onSave={(next) => { setProjects((prev) => prev.map((x) => x.id === next.id ? next : x)); toast.success("Project updated"); }}
-                    trigger={<Button size="sm" variant="outline"><Pencil className="h-3.5 w-3.5 mr-1" />Edit</Button>}
+                    onSave={(p) => {
+                      setProjects((prev) => [p, ...prev]);
+                      void pushNotification({
+                        kind: "project",
+                        title: "New project",
+                        body: p.title,
+                        link: "/projects",
+                      });
+                      toast.success("Project added");
+                    }}
+                    trigger={
+                      <Button size="sm" className="bg-gradient-primary">
+                        <Plus className="h-4 w-4 mr-1" />
+                        New project
+                      </Button>
+                    }
                   />
-                  <Button size="sm" variant="ghost" className="text-destructive"
-                    onClick={() => { if (confirm(`Delete "${p.title}"?`)) { setProjects((prev) => prev.filter((x) => x.id !== p.id)); toast.success("Project deleted"); } }}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 </div>
-              ))}
-            </div>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="events" className="mt-6">
-          <Card className="p-4 sm:p-6 border-border/50">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <h2 className="font-semibold">Manage events ({events.length})</h2>
-              <EventDialog
-                onSave={(e) => {
-                  setEvents((prev) => [e, ...prev]);
-                  void pushNotification({ kind: "event", title: "New event", body: e.title, link: "/events" });
-                  toast.success("Event added");
-                }}
-                trigger={<Button size="sm" className="bg-gradient-primary"><Plus className="h-4 w-4 mr-1" />New event</Button>}
-              />
-            </div>
-            <div className="divide-y divide-border">
-              {events.map((e) => (
-                <div key={e.id} className="flex items-center gap-4 py-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{e.title}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {formatAdminDate(e.date)} · {regs.rows.filter((r) => r.event_id === e.id).length} form registrations
-                      {(e.customFields?.length ?? 0) > 0 && ` · ${e.customFields!.length} custom field(s)`}
-                    </div>
-                  </div>
-                  <Badge variant={e.status === "upcoming" ? "default" : "outline"}>{e.status}</Badge>
-                  <EventDialog
-                    event={e}
-                    onSave={(next) => { setEvents((prev) => prev.map((x) => x.id === next.id ? next : x)); toast.success("Event updated"); }}
-                    trigger={<Button size="sm" variant="outline"><Pencil className="h-3.5 w-3.5 mr-1" />Edit</Button>}
-                  />
-                  <Button size="sm" variant="ghost" className="text-destructive"
-                    onClick={() => { if (confirm(`Delete "${e.title}"?`)) { setEvents((prev) => prev.filter((x) => x.id !== e.id)); toast.success("Event deleted"); } }}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="team" className="mt-6">
-          <Card className="p-4 sm:p-6 border-border/50">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <h2 className="font-semibold">Team members ({members.length})</h2>
-              <MemberDialog
-                onSave={(m) => { setMembers((prev) => [...prev, m]); toast.success("Team member added"); }}
-                trigger={<Button size="sm" className="bg-gradient-primary"><Plus className="h-4 w-4 mr-1" />Add team member</Button>}
-              />
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="text-xs text-muted-foreground uppercase border-b border-border">
-                  <tr><th className="text-left py-2">Name</th><th className="text-left">Member ID</th><th className="text-left">Position</th><th className="text-left">Skills</th><th></th></tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {members.map((m) => (
-                    <tr key={m.id}>
-                      <td className="py-3 flex items-center gap-2"><img src={m.avatar} className="h-7 w-7 rounded-full" alt="" />{m.name}</td>
-                      <td className="font-mono text-xs">{m.memberId}</td>
-                      <td>{m.position}</td>
-                      <td className="text-xs text-muted-foreground">{m.skills.slice(0, 2).join(", ")}</td>
-                      <td className="text-right">
-                        <MemberDialog member={m}
-                          onSave={(next) => { setMembers((prev) => prev.map((x) => x.id === next.id ? next : x)); toast.success("Team member updated"); }}
-                          trigger={<Button size="sm" variant="ghost"><Pencil className="h-3.5 w-3.5" /></Button>}
-                        />
-                        <Button size="sm" variant="ghost" className="text-destructive"
-                          onClick={() => { if (confirm(`Remove ${m.name}?`)) { setMembers((prev) => prev.filter((x) => x.id !== m.id)); toast.success("Removed"); } }}>
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="partners" className="mt-6">
-          <Card className="p-4 sm:p-6 border-border/50">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <div>
-                <h2 className="font-semibold">Collaborate partners ({partners.length})</h2>
-                <p className="text-xs text-muted-foreground">Shown in the Collaborate section on the home page.</p>
-              </div>
-              <PartnerDialog
-                onSave={(p) => {
-                  setPartners((prev) => [p, ...prev]);
-                  void pushNotification({ kind: "partner", title: "New partner", body: p.name, link: "/" });
-                  toast.success("Partner added");
-                }}
-                trigger={<Button size="sm" className="bg-gradient-primary"><Plus className="h-4 w-4 mr-1" />New partner</Button>}
-              />
-            </div>
-            {partners.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No partners yet.</p>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {partners.map((p) => (
-                  <div key={p.id} className="flex items-center gap-3 p-3 rounded-lg border border-border/50">
-                    <img src={p.logo} className="h-12 w-12 rounded object-contain bg-white p-1" alt={p.name} />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{p.name}</div>
-                                        </div>
-                    <PartnerDialog partner={p}
-                      onSave={(n) => { setPartners((prev) => prev.map((x) => x.id === n.id ? n : x)); toast.success("Updated"); }}
-                      trigger={<Button size="sm" variant="ghost"><Pencil className="h-3.5 w-3.5" /></Button>}
-                    />
-                    <Button size="sm" variant="ghost" className="text-destructive"
-                      onClick={() => { if (confirm(`Delete ${p.name}?`)) { setPartners((prev) => prev.filter((x) => x.id !== p.id)); toast.success("Deleted"); } }}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="accounts" className="mt-6">
-          <MemberAccountsPanel />
-        </TabsContent>
-
-        <TabsContent value="meetings" className="mt-6">
-          <Card className="p-4 sm:p-6 border-border/50">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <h2 className="font-semibold">Club meetings ({meetings.length}) — shown on member dashboards</h2>
-              <MeetingDialog
-                onSave={(m) => {
-                  setMeetings((prev) => [m, ...prev]);
-                  void pushNotification({ kind: "meeting", title: "New meeting", body: m.title });
-                  toast.success("Meeting added");
-                }}
-                trigger={<Button size="sm" className="bg-gradient-primary"><Plus className="h-4 w-4 mr-1" />New meeting</Button>}
-              />
-            </div>
-            {meetings.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No meetings yet.</p>
-            ) : (
-              <div className="divide-y divide-border">
-                {meetings.map((m) => (
-                  <div key={m.id} className="flex items-center gap-4 py-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium">{m.title}</div>
-                      <div className="text-xs text-muted-foreground">{new Date(m.date).toLocaleString()} · {m.location}</div>
-                      {m.agenda && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{m.agenda}</p>}
-                    </div>
-                    <MeetingDialog meeting={m}
-                      onSave={(next) => { setMeetings((prev) => prev.map((x) => x.id === next.id ? next : x)); toast.success("Meeting updated"); }}
-                      trigger={<Button size="sm" variant="outline"><Pencil className="h-3.5 w-3.5" /></Button>}
-                    />
-                    <Button size="sm" variant="ghost" className="text-destructive"
-                      onClick={() => { if (confirm(`Delete "${m.title}"?`)) { setMeetings((prev) => prev.filter((x) => x.id !== m.id)); toast.success("Deleted"); } }}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="tasks" className="mt-6">
-          <Card className="p-4 sm:p-6 border-border/50">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <h2 className="font-semibold">Broadcast tasks ({bTasks.length}) — pushed to all member dashboards</h2>
-              <TaskDialog
-                onSave={(t) => {
-                  setBTasks((prev) => [t, ...prev]);
-                  void pushNotification({ kind: "task", title: "New task assigned", body: t.title });
-                  toast.success("Task assigned");
-                }}
-                trigger={<Button size="sm" className="bg-gradient-primary"><Plus className="h-4 w-4 mr-1" />New task</Button>}
-              />
-            </div>
-            {bTasks.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No club-wide tasks yet.</p>
-            ) : (
-              <div className="divide-y divide-border">
-                {bTasks.map((t) => (
-                  <div key={t.id} className="flex items-center gap-4 py-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium">{t.title}</div>
-                      {t.description && <p className="text-xs text-muted-foreground mt-0.5">{t.description}</p>}
-                      <div className="text-[11px] text-muted-foreground mt-1">
-                        {t.dueDate && `Due ${formatAdminDateOnly(t.dueDate)}`}
+                <div className="divide-y divide-border">
+                  {projects.map((p) => (
+                    <div key={p.id} className="flex items-center gap-4 py-3">
+                      <img src={p.image} className="h-12 w-16 rounded object-cover" alt="" />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{p.title}</div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {p.category} · {p.team.join(", ")}
+                        </div>
                       </div>
+                      <ProjectDialog
+                        project={p}
+                        onSave={(next) => {
+                          setProjects((prev) => prev.map((x) => (x.id === next.id ? next : x)));
+                          toast.success("Project updated");
+                        }}
+                        trigger={
+                          <Button size="sm" variant="outline">
+                            <Pencil className="h-3.5 w-3.5 mr-1" />
+                            Edit
+                          </Button>
+                        }
+                      />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive"
+                        onClick={() => {
+                          if (confirm(`Delete "${p.title}"?`)) {
+                            setProjects((prev) => prev.filter((x) => x.id !== p.id));
+                            toast.success("Project deleted");
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <Badge variant="outline" className="capitalize">{t.priority}</Badge>
-                    <TaskDialog task={t}
-                      onSave={(next) => { setBTasks((prev) => prev.map((x) => x.id === next.id ? next : x)); toast.success("Task updated"); }}
-                      trigger={<Button size="sm" variant="outline"><Pencil className="h-3.5 w-3.5" /></Button>}
-                    />
-                    <Button size="sm" variant="ghost" className="text-destructive"
-                      onClick={() => { if (confirm(`Delete task "${t.title}"?`)) { setBTasks((prev) => prev.filter((x) => x.id !== t.id)); toast.success("Deleted"); } }}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
-        </TabsContent>
+                  ))}
+                </div>
+              </Card>
+            </TabsContent>
 
-        <TabsContent value="registrations" className="mt-6">
-          <Card className="p-4 sm:p-6 border-border/50">
-            <h2 className="font-semibold mb-4">Event registrations ({regs.rows.length})</h2>
-            {regs.rows.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No one has registered through the form yet.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="text-xs text-muted-foreground uppercase border-b border-border">
-                    <tr><th className="text-left py-2">Event</th><th className="text-left">Name</th><th className="text-left">Email</th><th className="text-left">Phone</th><th className="text-left">When</th><th></th></tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {regs.rows.map((r) => {
-                      const ev = events.find((e) => e.id === r.event_id);
-                      const d = r.data as Record<string, unknown>;
-                      return (
-                        <tr key={r.id}>
-                          <td className="py-3">{ev?.title ?? (d.eventTitle as string) ?? "—"}</td>
-                          <td>{d.name as string}</td>
-                          <td className="text-muted-foreground">{d.email as string}</td>
-                          <td className="text-muted-foreground">{(d.phone as string) || "—"}</td>
-                          <td className="text-xs text-muted-foreground">{formatAdminDate(r.created_at)}</td>
+            <TabsContent value="events" className="mt-6">
+              <Card className="p-4 sm:p-6 border-border/50">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                  <h2 className="font-semibold">Manage events ({events.length})</h2>
+                  <EventDialog
+                    onSave={(e) => {
+                      setEvents((prev) => [e, ...prev]);
+                      void pushNotification({
+                        kind: "event",
+                        title: "New event",
+                        body: e.title,
+                        link: "/events",
+                      });
+                      toast.success("Event added");
+                    }}
+                    trigger={
+                      <Button size="sm" className="bg-gradient-primary">
+                        <Plus className="h-4 w-4 mr-1" />
+                        New event
+                      </Button>
+                    }
+                  />
+                </div>
+                <div className="divide-y divide-border">
+                  {events.map((e) => (
+                    <div key={e.id} className="flex items-center gap-4 py-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{e.title}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {formatAdminDate(e.date)} ·{" "}
+                          {regs.rows.filter((r) => r.event_id === e.id).length} form registrations
+                          {(e.customFields?.length ?? 0) > 0 &&
+                            ` · ${e.customFields!.length} custom field(s)`}
+                        </div>
+                      </div>
+                      <Badge
+                        variant={
+                          e.status === "upcoming" && new Date(e.date).getTime() > Date.now()
+                            ? "default"
+                            : "outline"
+                        }
+                      >
+                        {e.status === "upcoming" && new Date(e.date).getTime() > Date.now()
+                          ? "upcoming"
+                          : "past"}
+                      </Badge>
+                      <EventDialog
+                        event={e}
+                        onSave={(next) => {
+                          setEvents((prev) => prev.map((x) => (x.id === next.id ? next : x)));
+                          toast.success("Event updated");
+                        }}
+                        trigger={
+                          <Button size="sm" variant="outline">
+                            <Pencil className="h-3.5 w-3.5 mr-1" />
+                            Edit
+                          </Button>
+                        }
+                      />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive"
+                        onClick={() => {
+                          if (confirm(`Delete "${e.title}"?`)) {
+                            setEvents((prev) => prev.filter((x) => x.id !== e.id));
+                            toast.success("Event deleted");
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="team" className="mt-6">
+              <Card className="p-4 sm:p-6 border-border/50">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                  <h2 className="font-semibold">Team members ({members.length})</h2>
+                  <MemberDialog
+                    onSave={(m) => {
+                      setMembers((prev) => [...prev, m]);
+                      toast.success("Team member added");
+                    }}
+                    trigger={
+                      <Button size="sm" className="bg-gradient-primary">
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add team member
+                      </Button>
+                    }
+                  />
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="text-xs text-muted-foreground uppercase border-b border-border">
+                      <tr>
+                        <th className="text-left py-2">Name</th>
+                        <th className="text-left">Member ID</th>
+                        <th className="text-left">Position</th>
+                        <th className="text-left">Skills</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {members.map((m) => (
+                        <tr key={m.id}>
+                          <td className="py-3 flex items-center gap-2">
+                            <img src={m.avatar} className="h-7 w-7 rounded-full" alt="" />
+                            {m.name}
+                          </td>
+                          <td className="font-mono text-xs">{m.memberId}</td>
+                          <td>{m.position}</td>
+                          <td className="text-xs text-muted-foreground">
+                            {m.skills.slice(0, 2).join(", ")}
+                          </td>
                           <td className="text-right">
-                            <Button size="sm" variant="ghost" className="text-destructive"
-                              onClick={() => { if (confirm(`Remove registration from ${d.name}?`)) { void regs.remove(r.id).then(() => toast.success("Removed")); } }}>
+                            <MemberDialog
+                              member={m}
+                              onSave={(next) => {
+                                setMembers((prev) =>
+                                  prev.map((x) => (x.id === next.id ? next : x)),
+                                );
+                                toast.success("Team member updated");
+                              }}
+                              trigger={
+                                <Button size="sm" variant="ghost">
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                              }
+                            />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-destructive"
+                              onClick={() => {
+                                if (confirm(`Remove ${m.name}?`)) {
+                                  setMembers((prev) => prev.filter((x) => x.id !== m.id));
+                                  toast.success("Removed");
+                                }
+                              }}
+                            >
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </td>
                         </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="partners" className="mt-6">
+              <Card className="p-4 sm:p-6 border-border/50">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                  <div>
+                    <h2 className="font-semibold">Collaborate partners ({partners.length})</h2>
+                    <p className="text-xs text-muted-foreground">
+                      Shown in the Collaborate section on the home page.
+                    </p>
+                  </div>
+                  <PartnerDialog
+                    onSave={(p) => {
+                      setPartners((prev) => [p, ...prev]);
+                      void pushNotification({
+                        kind: "partner",
+                        title: "New partner",
+                        body: p.name,
+                        link: "/",
+                      });
+                      toast.success("Partner added");
+                    }}
+                    trigger={
+                      <Button size="sm" className="bg-gradient-primary">
+                        <Plus className="h-4 w-4 mr-1" />
+                        New partner
+                      </Button>
+                    }
+                  />
+                </div>
+                {partners.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">No partners yet.</p>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {partners.map((p) => (
+                      <div
+                        key={p.id}
+                        className="flex items-center gap-3 p-3 rounded-lg border border-border/50"
+                      >
+                        <img
+                          src={p.logo}
+                          className="h-12 w-12 rounded object-contain bg-white p-1"
+                          alt={p.name}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium truncate">{p.name}</div>
+                        </div>
+                        <PartnerDialog
+                          partner={p}
+                          onSave={(n) => {
+                            setPartners((prev) => prev.map((x) => (x.id === n.id ? n : x)));
+                            toast.success("Updated");
+                          }}
+                          trigger={
+                            <Button size="sm" variant="ghost">
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                          }
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive"
+                          onClick={() => {
+                            if (confirm(`Delete ${p.name}?`)) {
+                              setPartners((prev) => prev.filter((x) => x.id !== p.id));
+                              toast.success("Deleted");
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="accounts" className="mt-6">
+              <MemberAccountsPanel />
+            </TabsContent>
+
+            <TabsContent value="meetings" className="mt-6">
+              <Card className="p-4 sm:p-6 border-border/50">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                  <h2 className="font-semibold">
+                    Club meetings ({meetings.length}) — shown on member dashboards
+                  </h2>
+                  <MeetingDialog
+                    onSave={(m) => {
+                      setMeetings((prev) => [m, ...prev]);
+                      void pushNotification({
+                        kind: "meeting",
+                        title: "New meeting",
+                        body: m.title,
+                      });
+                      toast.success("Meeting added");
+                    }}
+                    trigger={
+                      <Button size="sm" className="bg-gradient-primary">
+                        <Plus className="h-4 w-4 mr-1" />
+                        New meeting
+                      </Button>
+                    }
+                  />
+                </div>
+                {meetings.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">No meetings yet.</p>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {meetings.map((m) => (
+                      <div key={m.id} className="flex items-center gap-4 py-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium">{m.title}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(m.date).toLocaleString()} · {m.location}
+                          </div>
+                          {m.agenda && (
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                              {m.agenda}
+                            </p>
+                          )}
+                        </div>
+                        <MeetingDialog
+                          meeting={m}
+                          onSave={(next) => {
+                            setMeetings((prev) => prev.map((x) => (x.id === next.id ? next : x)));
+                            toast.success("Meeting updated");
+                          }}
+                          trigger={
+                            <Button size="sm" variant="outline">
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                          }
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive"
+                          onClick={() => {
+                            if (confirm(`Delete "${m.title}"?`)) {
+                              setMeetings((prev) => prev.filter((x) => x.id !== m.id));
+                              toast.success("Deleted");
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="tasks" className="mt-6">
+              <Card className="p-4 sm:p-6 border-border/50">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                  <h2 className="font-semibold">
+                    Broadcast tasks ({bTasks.length}) — pushed to all member dashboards
+                  </h2>
+                  <TaskDialog
+                    onSave={(t) => {
+                      setBTasks((prev) => [t, ...prev]);
+                      void pushNotification({
+                        kind: "task",
+                        title: "New task assigned",
+                        body: t.title,
+                      });
+                      toast.success("Task assigned");
+                    }}
+                    trigger={
+                      <Button size="sm" className="bg-gradient-primary">
+                        <Plus className="h-4 w-4 mr-1" />
+                        New task
+                      </Button>
+                    }
+                  />
+                </div>
+                {bTasks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    No club-wide tasks yet.
+                  </p>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {bTasks.map((t) => (
+                      <div key={t.id} className="flex items-center gap-4 py-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium">{t.title}</div>
+                          {t.description && (
+                            <p className="text-xs text-muted-foreground mt-0.5">{t.description}</p>
+                          )}
+                          <div className="text-[11px] text-muted-foreground mt-1">
+                            {t.dueDate && `Due ${formatAdminDateOnly(t.dueDate)}`}
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="capitalize">
+                          {t.priority}
+                        </Badge>
+                        <TaskDialog
+                          task={t}
+                          onSave={(next) => {
+                            setBTasks((prev) => prev.map((x) => (x.id === next.id ? next : x)));
+                            toast.success("Task updated");
+                          }}
+                          trigger={
+                            <Button size="sm" variant="outline">
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                          }
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive"
+                          onClick={() => {
+                            if (confirm(`Delete task "${t.title}"?`)) {
+                              setBTasks((prev) => prev.filter((x) => x.id !== t.id));
+                              toast.success("Deleted");
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="registrations" className="mt-6">
+              <Card className="p-4 sm:p-6 border-border/50">
+                <h2 className="font-semibold mb-4">Event registrations ({regs.rows.length})</h2>
+                {regs.rows.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    No one has registered through the form yet.
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="text-xs text-muted-foreground uppercase border-b border-border">
+                        <tr>
+                          <th className="text-left py-2">Event</th>
+                          <th className="text-left">Name</th>
+                          <th className="text-left">Email</th>
+                          <th className="text-left">Phone</th>
+                          <th className="text-left">When</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {regs.rows.map((r) => {
+                          const ev = events.find((e) => e.id === r.event_id);
+                          const d = r.data as Record<string, unknown>;
+                          return (
+                            <tr key={r.id}>
+                              <td className="py-3">
+                                {ev?.title ?? (d.eventTitle as string) ?? "—"}
+                              </td>
+                              <td>{d.name as string}</td>
+                              <td className="text-muted-foreground">{d.email as string}</td>
+                              <td className="text-muted-foreground">
+                                {(d.phone as string) || "—"}
+                              </td>
+                              <td className="text-xs text-muted-foreground">
+                                {formatAdminDate(r.created_at)}
+                              </td>
+                              <td className="text-right">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-destructive"
+                                  onClick={() => {
+                                    if (confirm(`Remove registration from ${d.name}?`)) {
+                                      void regs.remove(r.id).then(() => toast.success("Removed"));
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="applications" className="mt-6">
+              <Card className="p-4 sm:p-6 border-border/50">
+                <h2 className="font-semibold mb-4">Membership applications ({apps.rows.length})</h2>
+                {apps.rows.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    No applications yet.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {apps.rows.map((a) => {
+                      const d = a.data as Record<string, string>;
+                      return (
+                        <div key={a.id} className="p-4 rounded-lg border border-border/50">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="font-medium">
+                                {d.name}{" "}
+                                <span className="text-xs text-muted-foreground font-normal">
+                                  · {d.email}
+                                </span>
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-0.5">
+                                {d.department} · {d.year} · {formatAdminDate(a.created_at)}
+                              </div>
+                              {d.skills && (
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  <span className="font-medium text-foreground">Skills:</span>{" "}
+                                  {d.skills}
+                                </div>
+                              )}
+                              <p className="text-sm mt-2 whitespace-pre-wrap">{d.reason}</p>
+                            </div>
+                            <div className="flex gap-1 shrink-0">
+                              <Button size="sm" variant="outline" asChild>
+                                <a href={`mailto:${d.email}`}>
+                                  <Mail className="h-4 w-4 mr-1.5" />
+                                  Reply
+                                </a>
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  if (confirm(`Delete application from ${d.name}?`)) {
+                                    void apps.remove(a.id).then(() => toast.success("Removed"));
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
                       );
                     })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="applications" className="mt-6">
-          <Card className="p-4 sm:p-6 border-border/50">
-            <h2 className="font-semibold mb-4">Membership applications ({apps.rows.length})</h2>
-            {apps.rows.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No applications yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {apps.rows.map((a) => {
-                  const d = a.data as Record<string, string>;
-                  return (
-                    <div key={a.id} className="p-4 rounded-lg border border-border/50">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="font-medium">{d.name} <span className="text-xs text-muted-foreground font-normal">· {d.email}</span></div>
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            {d.department} · {d.year} · {formatAdminDate(a.created_at)}
-                          </div>
-                          {d.skills && <div className="text-xs text-muted-foreground mt-1"><span className="font-medium text-foreground">Skills:</span> {d.skills}</div>}
-                          <p className="text-sm mt-2 whitespace-pre-wrap">{d.reason}</p>
-                        </div>
-                        <div className="flex gap-1 shrink-0">
-                          <Button size="sm" variant="outline" asChild>
-                            <a href={`mailto:${d.email}`}><Mail className="h-4 w-4 mr-1.5" />Reply</a>
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => { if (confirm(`Delete application from ${d.name}?`)) { void apps.remove(a.id).then(() => toast.success("Removed")); } }}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="subscribers" className="mt-6">
-          <Card className="p-4 sm:p-6 border-border/50">
-            <h2 className="font-semibold mb-4">Event notification subscribers ({subs.rows.length})</h2>
-            {subs.rows.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No one has subscribed yet.</p>
-            ) : (
-              <div className="divide-y divide-border">
-                {subs.rows.map((s) => (
-                  <div key={s.id} className="flex items-center py-2 gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="flex-1 text-sm">{(s.data as { email?: string }).email}</span>
-                    <span className="text-xs text-muted-foreground">{formatAdminDate(s.created_at)}</span>
-                    <Button size="sm" variant="ghost" onClick={() => { void subs.remove(s.id).then(() => toast.success("Removed")); }}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
                   </div>
-                ))}
-              </div>
-            )}
-          </Card>
-        </TabsContent>
+                )}
+              </Card>
+            </TabsContent>
 
-        <TabsContent value="inbox" className="mt-6">
-          <Card className="p-4 sm:p-6 border-border/50">
-            <h2 className="font-semibold mb-4">Contact form messages</h2>
-            {inbox.rows.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-12">No messages yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {inbox.rows.map((m) => {
-                  const d = m.data as { name: string; email: string; message: string };
-                  return (
-                    <div key={m.id} className="p-4 rounded-lg border border-border/50 bg-surface/50">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="font-medium">{d.name} <span className="text-xs text-muted-foreground font-normal">· {d.email}</span></div>
-                          <div className="text-xs text-muted-foreground mt-0.5">{new Date(m.created_at).toLocaleString()}</div>
-                          <p className="text-sm mt-2">{d.message}</p>
-                        </div>
-                        <div className="flex gap-1 shrink-0">
-                          <Button size="sm" variant="outline" asChild>
-                            <a href={`mailto:${d.email}?subject=Re: your message to ICT Club`}><Mail className="h-4 w-4 mr-1.5" />Reply</a>
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => { void inbox.remove(m.id).then(() => toast.success("Deleted")); }}><Trash2 className="h-4 w-4" /></Button>
-                        </div>
+            <TabsContent value="subscribers" className="mt-6">
+              <Card className="p-4 sm:p-6 border-border/50">
+                <h2 className="font-semibold mb-4">
+                  Event notification subscribers ({subs.rows.length})
+                </h2>
+                {subs.rows.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    No one has subscribed yet.
+                  </p>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {subs.rows.map((s) => (
+                      <div key={s.id} className="flex items-center py-2 gap-3">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        <span className="flex-1 text-sm">
+                          {(s.data as { email?: string }).email}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatAdminDate(s.created_at)}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            void subs.remove(s.id).then(() => toast.success("Removed"));
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </Card>
-        </TabsContent>
-        </div>
-      </Tabs>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="inbox" className="mt-6">
+              <Card className="p-4 sm:p-6 border-border/50">
+                <h2 className="font-semibold mb-4">Contact form messages</h2>
+                {inbox.rows.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-12">
+                    No messages yet.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {inbox.rows.map((m) => {
+                      const d = m.data as { name: string; email: string; message: string };
+                      return (
+                        <div
+                          key={m.id}
+                          className="p-4 rounded-lg border border-border/50 bg-surface/50"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="font-medium">
+                                {d.name}{" "}
+                                <span className="text-xs text-muted-foreground font-normal">
+                                  · {d.email}
+                                </span>
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-0.5">
+                                {new Date(m.created_at).toLocaleString()}
+                              </div>
+                              <p className="text-sm mt-2">{d.message}</p>
+                            </div>
+                            <div className="flex gap-1 shrink-0">
+                              <Button size="sm" variant="outline" asChild>
+                                <a href={`mailto:${d.email}?subject=Re: your message to ICT Club`}>
+                                  <Mail className="h-4 w-4 mr-1.5" />
+                                  Reply
+                                </a>
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  void inbox.remove(m.id).then(() => toast.success("Deleted"));
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </Card>
+            </TabsContent>
+          </div>
+        </Tabs>
       </div>
     </main>
   );
 }
 
-function ImagePicker({ label, value, onChange, folder, owner }: { label: string; value: string; onChange: (value: string) => void; folder: "events" | "projects" | "members" | "partners"; owner: string }) {
+function ImagePicker({
+  label,
+  value,
+  onChange,
+  folder,
+  owner,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  folder: "events" | "projects" | "members" | "partners";
+  owner: string;
+}) {
   const [uploading, setUploading] = useState(false);
   const handleFile = async (file: File) => {
     setUploading(true);
-    try { onChange(await uploadImage(file, folder, owner)); toast.success(`${label} uploaded`); }
-    catch (error) { toast.error(error instanceof Error ? error.message : "Image upload failed"); }
-    finally { setUploading(false); }
+    try {
+      onChange(await uploadImage(file, folder, owner));
+      toast.success(`${label} uploaded`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Image upload failed");
+    } finally {
+      setUploading(false);
+    }
   };
-  return <div className="space-y-2"><Label>{label}</Label><div className="flex items-center gap-3"><div className="size-16 shrink-0 overflow-hidden rounded-lg border bg-muted">{value ? <img src={value} alt="Preview" className="size-full object-cover" onError={(event) => { event.currentTarget.style.display = "none"; }} /> : <div className="flex size-full items-center justify-center text-xs text-muted-foreground">No image</div>}</div><label className="cursor-pointer rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">{uploading ? "Uploading…" : "Upload image"}<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="hidden" disabled={uploading} onChange={(event) => event.target.files?.[0] && void handleFile(event.target.files[0])} /></label></div><Input value={value} onChange={(event) => onChange(event.target.value)} placeholder="Or paste an image URL" /><p className="text-[11px] text-muted-foreground">{imageUploadHelp}</p></div>;
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <div className="flex items-center gap-3">
+        <div className="size-16 shrink-0 overflow-hidden rounded-lg border bg-muted">
+          {value ? (
+            <img
+              src={value}
+              alt="Preview"
+              className="size-full object-cover"
+              onError={(event) => {
+                event.currentTarget.style.display = "none";
+              }}
+            />
+          ) : (
+            <div className="flex size-full items-center justify-center text-xs text-muted-foreground">
+              No image
+            </div>
+          )}
+        </div>
+        <label className="cursor-pointer rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">
+          {uploading ? "Uploading…" : "Upload image"}
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            className="hidden"
+            disabled={uploading}
+            onChange={(event) => event.target.files?.[0] && void handleFile(event.target.files[0])}
+          />
+        </label>
+      </div>
+      <Input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder="Or paste an image URL"
+      />
+      <p className="text-[11px] text-muted-foreground">{imageUploadHelp}</p>
+    </div>
+  );
 }
 
 /* ---------- Project dialog ---------- */
-function ProjectDialog({ project, onSave, trigger }: { project?: Project; onSave: (p: Project) => void; trigger: React.ReactNode }) {
+function ProjectDialog({
+  project,
+  onSave,
+  trigger,
+}: {
+  project?: Project;
+  onSave: (p: Project) => void;
+  trigger: React.ReactNode;
+}) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Project>(
-    project ?? { id: uid(), title: "", description: "", image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800", liveUrl: "#", docsUrl: "#", category: "Web", tech: [], team: [] },
+    project ?? {
+      id: uid(),
+      title: "",
+      description: "",
+      image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800",
+      liveUrl: "#",
+      docsUrl: "#",
+      category: "Web",
+      tech: [],
+      team: [],
+    },
   );
   const [techInput, setTechInput] = useState("");
   const [teamInput, setTeamInput] = useState("");
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title.trim()) { toast.error("Title required"); return; }
+    if (!form.title.trim()) {
+      toast.error("Title required");
+      return;
+    }
     onSave(form);
     setOpen(false);
   };
@@ -511,21 +969,69 @@ function ProjectDialog({ project, onSave, trigger }: { project?: Project; onSave
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>{project ? "Edit project" : "New project"}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>{project ? "Edit project" : "New project"}</DialogTitle>
+        </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
-          <div><Label>Title</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
-          <div><Label>Description</Label><Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-          <ImagePicker label="Project image" value={form.image} onChange={(image) => setForm({ ...form, image })} folder="projects" owner={form.id} />
+          <div>
+            <Label>Title</Label>
+            <Input
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label>Description</Label>
+            <Textarea
+              rows={3}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+          </div>
+          <ImagePicker
+            label="Project image"
+            value={form.image}
+            onChange={(image) => setForm({ ...form, image })}
+            folder="projects"
+            owner={form.id}
+          />
           <div>
             <Label>Category</Label>
-            <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as Project["category"] })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{CATS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+            <Select
+              value={form.category}
+              onValueChange={(v) => setForm({ ...form, category: v as Project["category"] })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CATS.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
-          <TagInput label="Tech stack" value={form.tech} setValue={(v) => setForm({ ...form, tech: v })} input={techInput} setInput={setTechInput} />
-          <TagInput label="Team members" value={form.team} setValue={(v) => setForm({ ...form, team: v })} input={teamInput} setInput={setTeamInput} />
-          <DialogFooter><Button type="submit" className="bg-gradient-primary">{project ? "Save changes" : "Create"}</Button></DialogFooter>
+          <TagInput
+            label="Tech stack"
+            value={form.tech}
+            setValue={(v) => setForm({ ...form, tech: v })}
+            input={techInput}
+            setInput={setTechInput}
+          />
+          <TagInput
+            label="Team members"
+            value={form.team}
+            setValue={(v) => setForm({ ...form, team: v })}
+            input={teamInput}
+            setInput={setTeamInput}
+          />
+          <DialogFooter>
+            <Button type="submit" className="bg-gradient-primary">
+              {project ? "Save changes" : "Create"}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -533,16 +1039,38 @@ function ProjectDialog({ project, onSave, trigger }: { project?: Project; onSave
 }
 
 /* ---------- Event dialog (with custom fields for RSVP form) ---------- */
-function EventDialog({ event, onSave, trigger }: { event?: Event; onSave: (e: Event) => void; trigger: React.ReactNode }) {
+function EventDialog({
+  event,
+  onSave,
+  trigger,
+}: {
+  event?: Event;
+  onSave: (e: Event) => void;
+  trigger: React.ReactNode;
+}) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Event>(
-    event ?? { id: uid(), title: "", description: "", date: new Date().toISOString(), location: "", image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800", attendees: 0, status: "upcoming", tags: [], customFields: [] },
+    event ?? {
+      id: uid(),
+      title: "",
+      description: "",
+      date: new Date().toISOString(),
+      location: "",
+      image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800",
+      attendees: 0,
+      status: "upcoming",
+      tags: [],
+      customFields: [],
+    },
   );
   const [tagInput, setTagInput] = useState("");
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title.trim()) { toast.error("Title required"); return; }
+    if (!form.title.trim()) {
+      toast.error("Title required");
+      return;
+    }
     onSave(form);
     setOpen(false);
   };
@@ -550,76 +1078,174 @@ function EventDialog({ event, onSave, trigger }: { event?: Event; onSave: (e: Ev
   const dateForInput = isoToDateTimeLocal(form.date);
   const fields = form.customFields ?? [];
 
-  const addField = () => setForm({ ...form, customFields: [...fields, { id: uid(), label: "", type: "text", required: false }] });
+  const addField = () =>
+    setForm({
+      ...form,
+      customFields: [...fields, { id: uid(), label: "", type: "text", required: false }],
+    });
   const updateField = (id: string, patch: Partial<CustomField>) =>
-    setForm({ ...form, customFields: fields.map((f) => f.id === id ? { ...f, ...patch } : f) });
-  const removeField = (id: string) => setForm({ ...form, customFields: fields.filter((f) => f.id !== id) });
+    setForm({ ...form, customFields: fields.map((f) => (f.id === id ? { ...f, ...patch } : f)) });
+  const removeField = (id: string) =>
+    setForm({ ...form, customFields: fields.filter((f) => f.id !== id) });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>{event ? "Edit event" : "New event"}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>{event ? "Edit event" : "New event"}</DialogTitle>
+        </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
-          <div><Label>Title</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
-          <div><Label>Description</Label><Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-          <div className="grid grid-cols-2 gap-2">
-            <div><Label>Date & time</Label><Input type="datetime-local" value={dateForInput} onChange={(e) => setForm({ ...form, date: dateTimeLocalToIso(e.target.value) })} /></div>
-            <div><Label>Location</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>
+          <div>
+            <Label>Title</Label>
+            <Input
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+            />
           </div>
-          <ImagePicker label="Event image" value={form.image} onChange={(image) => setForm({ ...form, image })} folder="events" owner={form.id} />
+          <div>
+            <Label>Description</Label>
+            <Textarea
+              rows={3}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label>Date & time</Label>
+              <Input
+                type="datetime-local"
+                value={dateForInput}
+                onChange={(e) => setForm({ ...form, date: dateTimeLocalToIso(e.target.value) })}
+              />
+            </div>
+            <div>
+              <Label>Location</Label>
+              <Input
+                value={form.location}
+                onChange={(e) => setForm({ ...form, location: e.target.value })}
+              />
+            </div>
+          </div>
+          <ImagePicker
+            label="Event image"
+            value={form.image}
+            onChange={(image) => setForm({ ...form, image })}
+            folder="events"
+            owner={form.id}
+          />
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label>Status</Label>
-              <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as Event["status"] })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={form.status}
+                onValueChange={(v) => setForm({ ...form, status: v as Event["status"] })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="upcoming">Upcoming</SelectItem>
                   <SelectItem value="past">Past</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div><Label>Attendees</Label><Input type="number" value={form.attendees} onChange={(e) => setForm({ ...form, attendees: Number(e.target.value) || 0 })} /></div>
+            <div>
+              <Label>Attendees</Label>
+              <Input
+                type="number"
+                value={form.attendees}
+                onChange={(e) => setForm({ ...form, attendees: Number(e.target.value) || 0 })}
+              />
+            </div>
           </div>
-          <TagInput label="Tags" value={form.tags} setValue={(v) => setForm({ ...form, tags: v })} input={tagInput} setInput={setTagInput} />
+          <TagInput
+            label="Tags"
+            value={form.tags}
+            setValue={(v) => setForm({ ...form, tags: v })}
+            input={tagInput}
+            setInput={setTagInput}
+          />
 
           <div className="border-t border-border pt-3">
             <div className="flex items-center justify-between mb-2">
               <Label>RSVP form — extra questions</Label>
-              <Button type="button" size="sm" variant="outline" onClick={addField}><Plus className="h-3.5 w-3.5 mr-1" />Add field</Button>
+              <Button type="button" size="sm" variant="outline" onClick={addField}>
+                <Plus className="h-3.5 w-3.5 mr-1" />
+                Add field
+              </Button>
             </div>
             <div className="space-y-2">
-              {fields.length === 0 && <p className="text-xs text-muted-foreground">The RSVP form asks for name, email, phone, and notes by default. Add extra fields here.</p>}
+              {fields.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  The RSVP form asks for name, email, phone, and notes by default. Add extra fields
+                  here.
+                </p>
+              )}
               {fields.map((f) => (
                 <div key={f.id} className="rounded-lg border border-border/50 p-3 space-y-2">
                   <div className="flex gap-2">
-                    <Input placeholder="Question label" value={f.label} onChange={(e) => updateField(f.id, { label: e.target.value })} />
-                    <Select value={f.type} onValueChange={(v) => updateField(f.id, { type: v as CustomField["type"] })}>
-                      <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                    <Input
+                      placeholder="Question label"
+                      value={f.label}
+                      onChange={(e) => updateField(f.id, { label: e.target.value })}
+                    />
+                    <Select
+                      value={f.type}
+                      onValueChange={(v) => updateField(f.id, { type: v as CustomField["type"] })}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="text">Short text</SelectItem>
                         <SelectItem value="textarea">Long text</SelectItem>
                         <SelectItem value="select">Choice</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Button type="button" size="sm" variant="ghost" className="text-destructive" onClick={() => removeField(f.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="text-destructive"
+                      onClick={() => removeField(f.id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
                   {f.type === "select" && (
                     <Input
                       placeholder="Options, comma-separated (Yes, No, Maybe)"
                       value={(f.options ?? []).join(", ")}
-                      onChange={(e) => updateField(f.id, { options: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })}
+                      onChange={(e) =>
+                        updateField(f.id, {
+                          options: e.target.value
+                            .split(",")
+                            .map((s) => s.trim())
+                            .filter(Boolean),
+                        })
+                      }
                     />
                   )}
                   <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <input type="checkbox" checked={f.required} onChange={(e) => updateField(f.id, { required: e.target.checked })} /> Required
+                    <input
+                      type="checkbox"
+                      checked={f.required}
+                      onChange={(e) => updateField(f.id, { required: e.target.checked })}
+                    />{" "}
+                    Required
                   </label>
                 </div>
               ))}
             </div>
           </div>
 
-          <DialogFooter><Button type="submit" className="bg-gradient-primary">{event ? "Save changes" : "Create"}</Button></DialogFooter>
+          <DialogFooter>
+            <Button type="submit" className="bg-gradient-primary">
+              {event ? "Save changes" : "Create"}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -627,7 +1253,15 @@ function EventDialog({ event, onSave, trigger }: { event?: Event; onSave: (e: Ev
 }
 
 /* ---------- Member dialog ---------- */
-function MemberDialog({ member, onSave, trigger }: { member?: TeamMember; onSave: (m: TeamMember) => void; trigger: React.ReactNode }) {
+function MemberDialog({
+  member,
+  onSave,
+  trigger,
+}: {
+  member?: TeamMember;
+  onSave: (m: TeamMember) => void;
+  trigger: React.ReactNode;
+}) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<TeamMember>(
     member ?? {
@@ -639,17 +1273,20 @@ function MemberDialog({ member, onSave, trigger }: { member?: TeamMember; onSave
       avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=${Math.random()}`,
       bio: "",
       skills: [],
-  memberId: `NJBs12134${Math.floor(1000 + Math.random() * 9000)}`,
-  orgUrl: "",
-  website: "",
-  socials: {},
+      memberId: `NJBs12134${Math.floor(1000 + Math.random() * 9000)}`,
+      orgUrl: "",
+      website: "",
+      socials: {},
     },
   );
   const [skillInput, setSkillInput] = useState("");
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim()) { toast.error("Name required"); return; }
+    if (!form.name.trim()) {
+      toast.error("Name required");
+      return;
+    }
     onSave(form);
     setOpen(false);
   };
@@ -658,23 +1295,80 @@ function MemberDialog({ member, onSave, trigger }: { member?: TeamMember; onSave
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>{member ? "Edit member" : "Add member"}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>{member ? "Edit member" : "Add member"}</DialogTitle>
+        </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
           <div className="grid grid-cols-2 gap-2">
-            <div><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-            <div><Label>Member ID</Label><Input value={form.memberId} onChange={(e) => setForm({ ...form, memberId: e.target.value })} className="font-mono" /></div>
+            <div>
+              <Label>Name</Label>
+              <Input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Member ID</Label>
+              <Input
+                value={form.memberId}
+                onChange={(e) => setForm({ ...form, memberId: e.target.value })}
+                className="font-mono"
+              />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div><Label>Position</Label><Input value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} /></div>
-            <div><Label>Department</Label><Input value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} /></div>
+            <div>
+              <Label>Position</Label>
+              <Input
+                value={form.position}
+                onChange={(e) => setForm({ ...form, position: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Department</Label>
+              <Input
+                value={form.department}
+                onChange={(e) => setForm({ ...form, department: e.target.value })}
+              />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <ImagePicker label="Member photo" value={form.avatar} onChange={(avatar) => setForm({ ...form, avatar })} folder="members" owner={form.id} />
-            <div><Label>Order</Label><Input type="number" value={form.order} onChange={(e) => setForm({ ...form, order: Number(e.target.value) || 99 })} /></div>
+            <ImagePicker
+              label="Member photo"
+              value={form.avatar}
+              onChange={(avatar) => setForm({ ...form, avatar })}
+              folder="members"
+              owner={form.id}
+            />
+            <div>
+              <Label>Order</Label>
+              <Input
+                type="number"
+                value={form.order}
+                onChange={(e) => setForm({ ...form, order: Number(e.target.value) || 99 })}
+              />
+            </div>
           </div>
-          <div><Label>Bio</Label><Textarea rows={2} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} /></div>
-          <TagInput label="Skills" value={form.skills} setValue={(v) => setForm({ ...form, skills: v })} input={skillInput} setInput={setSkillInput} />
-          <DialogFooter><Button type="submit" className="bg-gradient-primary">{member ? "Save changes" : "Add member"}</Button></DialogFooter>
+          <div>
+            <Label>Bio</Label>
+            <Textarea
+              rows={2}
+              value={form.bio}
+              onChange={(e) => setForm({ ...form, bio: e.target.value })}
+            />
+          </div>
+          <TagInput
+            label="Skills"
+            value={form.skills}
+            setValue={(v) => setForm({ ...form, skills: v })}
+            input={skillInput}
+            setInput={setSkillInput}
+          />
+          <DialogFooter>
+            <Button type="submit" className="bg-gradient-primary">
+              {member ? "Save changes" : "Add member"}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -682,16 +1376,34 @@ function MemberDialog({ member, onSave, trigger }: { member?: TeamMember; onSave
 }
 
 /* ---------- Meeting dialog ---------- */
-function MeetingDialog({ meeting, onSave, trigger }: { meeting?: Meeting; onSave: (m: Meeting) => void; trigger: React.ReactNode }) {
+function MeetingDialog({
+  meeting,
+  onSave,
+  trigger,
+}: {
+  meeting?: Meeting;
+  onSave: (m: Meeting) => void;
+  trigger: React.ReactNode;
+}) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Meeting>(
-    meeting ?? { id: uid(), title: "", date: new Date().toISOString(), location: "", agenda: "", accessMinutes: DEFAULT_ACCESS_MINUTES },
+    meeting ?? {
+      id: uid(),
+      title: "",
+      date: new Date().toISOString(),
+      location: "",
+      agenda: "",
+      accessMinutes: DEFAULT_ACCESS_MINUTES,
+    },
   );
   const dateForInput = isoToDateTimeLocal(form.date);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title.trim()) { toast.error("Title required"); return; }
+    if (!form.title.trim()) {
+      toast.error("Title required");
+      return;
+    }
     onSave(form);
     setOpen(false);
   };
@@ -700,25 +1412,67 @@ function MeetingDialog({ meeting, onSave, trigger }: { meeting?: Meeting; onSave
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle>{meeting ? "Edit meeting" : "New meeting"}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>{meeting ? "Edit meeting" : "New meeting"}</DialogTitle>
+        </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
-          <div><Label>Title</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
-          <div className="grid grid-cols-2 gap-2">
-            <div><Label>Date & time</Label><Input type="datetime-local" value={dateForInput} onChange={(e) => setForm({ ...form, date: dateTimeLocalToIso(e.target.value) })} /></div>
-            <div><Label>Location</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Room 204 / Zoom" /></div>
+          <div>
+            <Label>Title</Label>
+            <Input
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+            />
           </div>
-          <div><Label>Agenda</Label><Textarea rows={3} value={form.agenda} onChange={(e) => setForm({ ...form, agenda: e.target.value })} /></div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label>Date & time</Label>
+              <Input
+                type="datetime-local"
+                value={dateForInput}
+                onChange={(e) => setForm({ ...form, date: dateTimeLocalToIso(e.target.value) })}
+              />
+            </div>
+            <div>
+              <Label>Location</Label>
+              <Input
+                value={form.location}
+                onChange={(e) => setForm({ ...form, location: e.target.value })}
+                placeholder="Room 204 / Zoom"
+              />
+            </div>
+          </div>
+          <div>
+            <Label>Agenda</Label>
+            <Textarea
+              rows={3}
+              value={form.agenda}
+              onChange={(e) => setForm({ ...form, agenda: e.target.value })}
+            />
+          </div>
           <div>
             <Label>Access window (minutes after QR scan)</Label>
-            <Input type="number" min={5} max={1440}
+            <Input
+              type="number"
+              min={5}
+              max={1440}
               value={form.accessMinutes ?? DEFAULT_ACCESS_MINUTES}
-              onChange={(e) => setForm({ ...form, accessMinutes: Number(e.target.value) || DEFAULT_ACCESS_MINUTES })} />
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  accessMinutes: Number(e.target.value) || DEFAULT_ACCESS_MINUTES,
+                })
+              }
+            />
             <p className="text-[11px] text-muted-foreground mt-1">
               Members see a live countdown; access locks again when it ends.
             </p>
           </div>
 
-          <DialogFooter><Button type="submit" className="bg-gradient-primary">{meeting ? "Save" : "Create"}</Button></DialogFooter>
+          <DialogFooter>
+            <Button type="submit" className="bg-gradient-primary">
+              {meeting ? "Save" : "Create"}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -726,15 +1480,33 @@ function MeetingDialog({ meeting, onSave, trigger }: { meeting?: Meeting; onSave
 }
 
 /* ---------- Broadcast task dialog ---------- */
-function TaskDialog({ task, onSave, trigger }: { task?: BroadcastTask; onSave: (t: BroadcastTask) => void; trigger: React.ReactNode }) {
+function TaskDialog({
+  task,
+  onSave,
+  trigger,
+}: {
+  task?: BroadcastTask;
+  onSave: (t: BroadcastTask) => void;
+  trigger: React.ReactNode;
+}) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<BroadcastTask>(
-    task ?? { id: uid(), title: "", description: "", priority: "medium", dueDate: "", createdAt: new Date().toISOString() },
+    task ?? {
+      id: uid(),
+      title: "",
+      description: "",
+      priority: "medium",
+      dueDate: "",
+      createdAt: new Date().toISOString(),
+    },
   );
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title.trim()) { toast.error("Title required"); return; }
+    if (!form.title.trim()) {
+      toast.error("Title required");
+      return;
+    }
     onSave(form);
     setOpen(false);
   };
@@ -745,15 +1517,37 @@ function TaskDialog({ task, onSave, trigger }: { task?: BroadcastTask; onSave: (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle>{task ? "Edit task" : "Assign task to all members"}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>{task ? "Edit task" : "Assign task to all members"}</DialogTitle>
+        </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
-          <div><Label>Title</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
-          <div><Label>Description</Label><Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+          <div>
+            <Label>Title</Label>
+            <Input
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label>Description</Label>
+            <Textarea
+              rows={3}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label>Priority</Label>
-              <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v as BroadcastTask["priority"] })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={form.priority}
+                onValueChange={(v) =>
+                  setForm({ ...form, priority: v as BroadcastTask["priority"] })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Low</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
@@ -761,9 +1555,20 @@ function TaskDialog({ task, onSave, trigger }: { task?: BroadcastTask; onSave: (
                 </SelectContent>
               </Select>
             </div>
-            <div><Label>Due date</Label><Input type="date" value={dueForInput} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} /></div>
+            <div>
+              <Label>Due date</Label>
+              <Input
+                type="date"
+                value={dueForInput}
+                onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+              />
+            </div>
           </div>
-          <DialogFooter><Button type="submit" className="bg-gradient-primary">{task ? "Save" : "Assign"}</Button></DialogFooter>
+          <DialogFooter>
+            <Button type="submit" className="bg-gradient-primary">
+              {task ? "Save" : "Assign"}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -771,7 +1576,15 @@ function TaskDialog({ task, onSave, trigger }: { task?: BroadcastTask; onSave: (
 }
 
 /* ---------- Partner dialog ---------- */
-function PartnerDialog({ partner, onSave, trigger }: { partner?: Partner; onSave: (p: Partner) => void; trigger: React.ReactNode }) {
+function PartnerDialog({
+  partner,
+  onSave,
+  trigger,
+}: {
+  partner?: Partner;
+  onSave: (p: Partner) => void;
+  trigger: React.ReactNode;
+}) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partner>(
     partner ?? { id: uid(), name: "", logo: "", url: "", description: "" },
@@ -779,7 +1592,10 @@ function PartnerDialog({ partner, onSave, trigger }: { partner?: Partner; onSave
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim() || !form.logo.trim()) { toast.error("Name and logo URL required"); return; }
+    if (!form.name.trim() || !form.logo.trim()) {
+      toast.error("Name and logo URL required");
+      return;
+    }
     onSave(form);
     setOpen(false);
   };
@@ -788,15 +1604,31 @@ function PartnerDialog({ partner, onSave, trigger }: { partner?: Partner; onSave
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle>{partner ? "Edit partner" : "New partner"}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>{partner ? "Edit partner" : "New partner"}</DialogTitle>
+        </DialogHeader>
         <form onSubmit={submit} className="space-y-3">
-          <div><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+          <div>
+            <Label>Name</Label>
+            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          </div>
           <div>
             <Label>Logo</Label>
             {form.logo && (
               <div className="mt-1 mb-2 flex items-center gap-2">
-                <img src={form.logo} alt="preview" className="h-14 w-14 rounded object-contain bg-white p-1 border border-border" />
-                <Button type="button" variant="outline" size="sm" onClick={() => setForm({ ...form, logo: "" })}>Remove</Button>
+                <img
+                  src={form.logo}
+                  alt="preview"
+                  className="h-14 w-14 rounded object-contain bg-white p-1 border border-border"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setForm({ ...form, logo: "" })}
+                >
+                  Remove
+                </Button>
               </div>
             )}
             <Input
@@ -805,15 +1637,29 @@ function PartnerDialog({ partner, onSave, trigger }: { partner?: Partner; onSave
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
-                if (file.size > 2 * 1024 * 1024) { toast.error("Image must be under 2MB"); return; }
+                if (file.size > 2 * 1024 * 1024) {
+                  toast.error("Image must be under 2MB");
+                  return;
+                }
                 const reader = new FileReader();
                 reader.onload = () => setForm((f) => ({ ...f, logo: String(reader.result) }));
                 reader.readAsDataURL(file);
               }}
             />
           </div>
-          <div><Label>Short description</Label><Textarea rows={2} value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-          <DialogFooter><Button type="submit" className="bg-gradient-primary">{partner ? "Save" : "Add partner"}</Button></DialogFooter>
+          <div>
+            <Label>Short description</Label>
+            <Textarea
+              rows={2}
+              value={form.description ?? ""}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+          </div>
+          <DialogFooter>
+            <Button type="submit" className="bg-gradient-primary">
+              {partner ? "Save" : "Add partner"}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -821,7 +1667,19 @@ function PartnerDialog({ partner, onSave, trigger }: { partner?: Partner; onSave
 }
 
 /* ---------- Tag input helper ---------- */
-function TagInput({ label, value, setValue, input, setInput }: { label: string; value: string[]; setValue: (v: string[]) => void; input: string; setInput: (v: string) => void }) {
+function TagInput({
+  label,
+  value,
+  setValue,
+  input,
+  setInput,
+}: {
+  label: string;
+  value: string[];
+  setValue: (v: string[]) => void;
+  input: string;
+  setInput: (v: string) => void;
+}) {
   const add = () => {
     const v = input.trim();
     if (!v) return;
@@ -833,15 +1691,33 @@ function TagInput({ label, value, setValue, input, setInput }: { label: string; 
       <Label>{label}</Label>
       <div className="flex flex-wrap gap-1.5 mb-2 mt-1.5">
         {value.map((t) => (
-          <Badge key={t} variant="outline" className="gap-1 bg-primary/10 text-primary border-primary/20">
+          <Badge
+            key={t}
+            variant="outline"
+            className="gap-1 bg-primary/10 text-primary border-primary/20"
+          >
             {t}
-            <button type="button" onClick={() => setValue(value.filter((x) => x !== t))}>×</button>
+            <button type="button" onClick={() => setValue(value.filter((x) => x !== t))}>
+              ×
+            </button>
           </Badge>
         ))}
       </div>
       <div className="flex gap-2">
-        <Input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }} placeholder="Type and press Enter" />
-        <Button type="button" variant="outline" onClick={add}>Add</Button>
+        <Input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              add();
+            }
+          }}
+          placeholder="Type and press Enter"
+        />
+        <Button type="button" variant="outline" onClick={add}>
+          Add
+        </Button>
       </div>
     </div>
   );
