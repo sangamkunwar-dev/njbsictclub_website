@@ -32,6 +32,37 @@ export const Route = createFileRoute("/admin")({
 
 const CATS = ["Web", "AI/ML", "Mobile", "CyberSec", "IoT"] as const;
 
+// datetime-local values are local wall-clock times, while the store keeps ISO UTC.
+// Converting explicitly prevents dates from shifting by a day around timezone offsets.
+function isoToDateTimeLocal(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function dateTimeLocalToIso(value: string) {
+  if (!value) return "";
+  const [datePart, timePart = "00:00"] = value.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hours, minutes] = timePart.split(":").map(Number);
+  const local = new Date(year, month - 1, day, hours, minutes);
+  return Number.isNaN(local.getTime()) ? "" : local.toISOString();
+}
+
+function formatAdminDate(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "Invalid date"
+    : date.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+function formatAdminDateOnly(value: string) {
+  if (value.includes("T")) return formatAdminDate(value);
+  const [year, month, day] = value.split("-").map(Number);
+  return year && month && day ? `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}` : "Invalid date";
+}
+
 function AdminPage() {
   const { user, loading } = useAuth();
   const nav = useNavigate();
@@ -137,7 +168,7 @@ function AdminPage() {
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{e.title}</div>
                     <div className="text-xs text-muted-foreground">
-                      {new Date(e.date).toLocaleDateString()} · {regs.rows.filter((r) => r.event_id === e.id).length} form registrations
+                      {formatAdminDate(e.date)} · {regs.rows.filter((r) => r.event_id === e.id).length} form registrations
                       {(e.customFields?.length ?? 0) > 0 && ` · ${e.customFields!.length} custom field(s)`}
                     </div>
                   </div>
@@ -304,7 +335,7 @@ function AdminPage() {
                       <div className="font-medium">{t.title}</div>
                       {t.description && <p className="text-xs text-muted-foreground mt-0.5">{t.description}</p>}
                       <div className="text-[11px] text-muted-foreground mt-1">
-                        {t.dueDate && `Due ${new Date(t.dueDate).toLocaleDateString()}`}
+                        {t.dueDate && `Due ${formatAdminDateOnly(t.dueDate)}`}
                       </div>
                     </div>
                     <Badge variant="outline" className="capitalize">{t.priority}</Badge>
@@ -344,7 +375,7 @@ function AdminPage() {
                           <td>{d.name as string}</td>
                           <td className="text-muted-foreground">{d.email as string}</td>
                           <td className="text-muted-foreground">{(d.phone as string) || "—"}</td>
-                          <td className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</td>
+                          <td className="text-xs text-muted-foreground">{formatAdminDate(r.created_at)}</td>
                           <td className="text-right">
                             <Button size="sm" variant="ghost" className="text-destructive"
                               onClick={() => { if (confirm(`Remove registration from ${d.name}?`)) { void regs.remove(r.id).then(() => toast.success("Removed")); } }}>
@@ -376,7 +407,7 @@ function AdminPage() {
                         <div className="min-w-0">
                           <div className="font-medium">{d.name} <span className="text-xs text-muted-foreground font-normal">· {d.email}</span></div>
                           <div className="text-xs text-muted-foreground mt-0.5">
-                            {d.department} · {d.year} · {new Date(a.created_at).toLocaleDateString()}
+                            {d.department} · {d.year} · {formatAdminDate(a.created_at)}
                           </div>
                           {d.skills && <div className="text-xs text-muted-foreground mt-1"><span className="font-medium text-foreground">Skills:</span> {d.skills}</div>}
                           <p className="text-sm mt-2 whitespace-pre-wrap">{d.reason}</p>
@@ -409,7 +440,7 @@ function AdminPage() {
                   <div key={s.id} className="flex items-center py-2 gap-3">
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span className="flex-1 text-sm">{(s.data as { email?: string }).email}</span>
-                    <span className="text-xs text-muted-foreground">{new Date(s.created_at).toLocaleDateString()}</span>
+                    <span className="text-xs text-muted-foreground">{formatAdminDate(s.created_at)}</span>
                     <Button size="sm" variant="ghost" onClick={() => { void subs.remove(s.id).then(() => toast.success("Removed")); }}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
@@ -527,7 +558,7 @@ function EventDialog({ event, onSave, trigger }: { event?: Event; onSave: (e: Ev
     setOpen(false);
   };
 
-  const dateForInput = form.date.slice(0, 16);
+  const dateForInput = isoToDateTimeLocal(form.date);
   const fields = form.customFields ?? [];
 
   const addField = () => setForm({ ...form, customFields: [...fields, { id: uid(), label: "", type: "text", required: false }] });
@@ -544,7 +575,7 @@ function EventDialog({ event, onSave, trigger }: { event?: Event; onSave: (e: Ev
           <div><Label>Title</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
           <div><Label>Description</Label><Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-2">
-            <div><Label>Date & time</Label><Input type="datetime-local" value={dateForInput} onChange={(e) => setForm({ ...form, date: new Date(e.target.value).toISOString() })} /></div>
+            <div><Label>Date & time</Label><Input type="datetime-local" value={dateForInput} onChange={(e) => setForm({ ...form, date: dateTimeLocalToIso(e.target.value) })} /></div>
             <div><Label>Location</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>
           </div>
           <ImagePicker label="Event image" value={form.image} onChange={(image) => setForm({ ...form, image })} folder="events" owner={form.id} />
@@ -675,7 +706,7 @@ function MeetingDialog({ meeting, onSave, trigger }: { meeting?: Meeting; onSave
   const [form, setForm] = useState<Meeting>(
     meeting ?? { id: uid(), title: "", date: new Date().toISOString(), location: "", agenda: "", accessMinutes: DEFAULT_ACCESS_MINUTES },
   );
-  const dateForInput = form.date.slice(0, 16);
+  const dateForInput = isoToDateTimeLocal(form.date);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -692,7 +723,7 @@ function MeetingDialog({ meeting, onSave, trigger }: { meeting?: Meeting; onSave
         <form onSubmit={submit} className="space-y-3">
           <div><Label>Title</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-2">
-            <div><Label>Date & time</Label><Input type="datetime-local" value={dateForInput} onChange={(e) => setForm({ ...form, date: new Date(e.target.value).toISOString() })} /></div>
+            <div><Label>Date & time</Label><Input type="datetime-local" value={dateForInput} onChange={(e) => setForm({ ...form, date: dateTimeLocalToIso(e.target.value) })} /></div>
             <div><Label>Location</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Room 204 / Zoom" /></div>
           </div>
           <div><Label>Agenda</Label><Textarea rows={3} value={form.agenda} onChange={(e) => setForm({ ...form, agenda: e.target.value })} /></div>
@@ -762,7 +793,7 @@ function TaskDialog({ task, onSave, trigger }: { task?: BroadcastTask; onSave: (
                 </SelectContent>
               </Select>
             </div>
-            <div><Label>Due date</Label><Input type="date" value={dueForInput} onChange={(e) => setForm({ ...form, dueDate: e.target.value ? new Date(e.target.value).toISOString() : "" })} /></div>
+            <div><Label>Due date</Label><Input type="date" value={dueForInput} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} /></div>
           </div>
           <DialogFooter><Button type="submit" className="bg-gradient-primary">{task ? "Save" : "Assign"}</Button></DialogFooter>
         </form>
