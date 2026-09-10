@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  Shield, FolderKanban, Calendar, Users, Inbox, Mail, Trash2, Plus, Pencil,
-  Megaphone, CalendarClock, Ticket, Handshake, ClipboardList, Video, KeyRound,
+  FolderKanban, Calendar, Users, Inbox, Mail, Trash2, Plus, Pencil,
+  Megaphone, CalendarClock, Ticket, Handshake, ClipboardList, KeyRound,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -89,20 +89,6 @@ function AdminPage() {
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-3 py-5 sm:px-5 lg:flex-row lg:gap-5 lg:px-6">
-        <aside className="flex w-full shrink-0 flex-col rounded-2xl border border-border/60 bg-[var(--admin-sidebar-surface)] p-3 shadow-card lg:sticky lg:top-5 lg:h-[calc(100vh-2.5rem)] lg:max-h-[calc(100vh-2.5rem)] lg:w-72 lg:overflow-y-auto lg:overscroll-contain admin-scrollbar">
-          <div className="flex flex-col items-start gap-3 border-b border-border/60 px-2 pb-4">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-primary shadow-elegant">
-              <Shield className="size-5 text-primary-foreground" />
-            </div>
-            <div className="min-w-0">
-              <Badge variant="secondary" className="mb-2 text-[10px] uppercase tracking-wider">Superuser</Badge>
-              <h1 className="font-display text-xl font-bold tracking-tight">Admin Panel</h1>
-              <p className="mt-1 text-xs text-muted-foreground">Club management workspace</p>
-            </div>
-          </div>
-          <div className="px-2 py-4 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Workspace</div>
-        </aside>
-
       <Tabs defaultValue="projects" className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-5">
         <TabsList className="flex h-auto w-full shrink-0 flex-row justify-start gap-1 overflow-x-auto rounded-xl bg-muted/60 p-1 lg:h-auto lg:w-64 lg:flex-col lg:items-stretch lg:overflow-y-auto lg:overflow-x-hidden lg:bg-transparent lg:p-0 [&>button]:justify-start [&>button]:rounded-lg [&>button]:px-3 [&>button]:py-2.5 [&>button]:text-sm [&>button]:font-medium [&>button]:transition-colors [&>button][data-state=active]:bg-primary/10 [&>button][data-state=active]:text-primary [&>button][data-state=active]:shadow-none">
           <TabsTrigger value="projects"><FolderKanban className="h-4 w-4 mr-1.5" />Projects</TabsTrigger>
@@ -258,8 +244,7 @@ function AdminPage() {
                     <img src={p.logo} className="h-12 w-12 rounded object-contain bg-white p-1" alt={p.name} />
                     <div className="flex-1 min-w-0">
                       <div className="font-medium truncate">{p.name}</div>
-                      <div className="text-xs text-muted-foreground truncate">{p.url}</div>
-                    </div>
+                                        </div>
                     <PartnerDialog partner={p}
                       onSave={(n) => { setPartners((prev) => prev.map((x) => x.id === n.id ? n : x)); toast.success("Updated"); }}
                       trigger={<Button size="sm" variant="ghost"><Pencil className="h-3.5 w-3.5" /></Button>}
@@ -531,10 +516,6 @@ function ProjectDialog({ project, onSave, trigger }: { project?: Project; onSave
           <div><Label>Title</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
           <div><Label>Description</Label><Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
           <ImagePicker label="Project image" value={form.image} onChange={(image) => setForm({ ...form, image })} folder="projects" owner={form.id} />
-          <div className="grid grid-cols-2 gap-2">
-            <div><Label>Live URL</Label><Input value={form.liveUrl} onChange={(e) => setForm({ ...form, liveUrl: e.target.value })} /></div>
-            <div><Label>Docs URL</Label><Input value={form.docsUrl} onChange={(e) => setForm({ ...form, docsUrl: e.target.value })} /></div>
-          </div>
           <div>
             <Label>Category</Label>
             <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as Project["category"] })}>
@@ -693,14 +674,6 @@ function MemberDialog({ member, onSave, trigger }: { member?: TeamMember; onSave
           </div>
           <div><Label>Bio</Label><Textarea rows={2} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} /></div>
           <TagInput label="Skills" value={form.skills} setValue={(v) => setForm({ ...form, skills: v })} input={skillInput} setInput={setSkillInput} />
-  <div className="grid grid-cols-2 gap-2">
-  <div><Label>GitHub profile</Label><Input value={form.socials.github ?? ""} onChange={(e) => setForm({ ...form, socials: { ...form.socials, github: e.target.value } })} placeholder="https://github.com/member" /></div>
-  <div><Label>GitHub organization</Label><Input value={form.orgUrl ?? ""} onChange={(e) => setForm({ ...form, orgUrl: e.target.value })} placeholder="https://github.com/org" /></div>
-  </div>
-  <div className="grid grid-cols-2 gap-2">
-  <div><Label>Website</Label><Input value={form.website ?? ""} onChange={(e) => setForm({ ...form, website: e.target.value })} placeholder="https://example.com" /></div>
-  <div><Label>LinkedIn</Label><Input value={form.socials.linkedin ?? ""} onChange={(e) => setForm({ ...form, socials: { ...form.socials, linkedin: e.target.value } })} /></div>
-  </div>
           <DialogFooter><Button type="submit" className="bg-gradient-primary">{member ? "Save changes" : "Add member"}</Button></DialogFooter>
         </form>
       </DialogContent>
@@ -735,19 +708,6 @@ function MeetingDialog({ meeting, onSave, trigger }: { meeting?: Meeting; onSave
             <div><Label>Location</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Room 204 / Zoom" /></div>
           </div>
           <div><Label>Agenda</Label><Textarea rows={3} value={form.agenda} onChange={(e) => setForm({ ...form, agenda: e.target.value })} /></div>
-          <div>
-            <Label>Google Meet / meeting link (unlocked after QR check-in)</Label>
-            <div className="flex gap-2">
-              <Input value={form.link ?? ""} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="https://meet.google.com/abc-defg-hij" />
-              <Button type="button" variant="outline" size="sm" className="shrink-0"
-                onClick={() => window.open("https://meet.google.com/new", "_blank", "noreferrer")}>
-                <Video className="h-4 w-4 mr-1" />New Meet
-              </Button>
-            </div>
-            <p className="text-[11px] text-muted-foreground mt-1">
-              Click “New Meet” to create a Google Meet, then paste its link here so members can join after check-in.
-            </p>
-          </div>
           <div>
             <Label>Access window (minutes after QR scan)</Label>
             <Input type="number" min={5} max={1440}
@@ -851,9 +811,7 @@ function PartnerDialog({ partner, onSave, trigger }: { partner?: Partner; onSave
                 reader.readAsDataURL(file);
               }}
             />
-            <Input className="mt-2" value={form.logo.startsWith("data:") ? "" : form.logo} onChange={(e) => setForm({ ...form, logo: e.target.value })} placeholder="…or paste logo URL" />
           </div>
-          <div><Label>Website URL</Label><Input value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://…" /></div>
           <div><Label>Short description</Label><Textarea rows={2} value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
           <DialogFooter><Button type="submit" className="bg-gradient-primary">{partner ? "Save" : "Add partner"}</Button></DialogFooter>
         </form>
