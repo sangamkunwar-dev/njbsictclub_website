@@ -86,6 +86,13 @@
   --shadow-elegant: 0 20px 60px -20px oklch(0.55 0.22 265 / 0.25);
   --shadow-glow: 0 0 40px oklch(0.72 0.18 220 / 0.35);
   --shadow-card: 0 1px 2px oklch(0.16 0.03 260 / 0.04), 0 8px 24px -12px oklch(0.16 0.03 260 / 0.08);
+  --admin-sidebar-width: 17rem;
+  --admin-sidebar-surface: color-mix(in oklab, var(--card) 88%, var(--primary) 12%);
+}
+
+@utility admin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--primary) 35%, transparent) transparent;
 }
 
 @layer base {

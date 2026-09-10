@@ -88,8 +88,8 @@ function AdminPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-3 py-5 sm:px-5 lg:flex-row lg:gap-5 lg:px-6">
-        <aside className="flex w-full shrink-0 flex-col rounded-2xl border border-border/60 bg-card/80 p-3 shadow-card lg:sticky lg:top-5 lg:h-[calc(100vh-2.5rem)] lg:w-72">
+      <div className="mx-auto flex min-h-screen w-full max-w-[1600px] flex-col px-3 py-5 sm:px-5 lg:flex-row-reverse lg:gap-5 lg:px-6">
+        <aside className="flex w-full shrink-0 flex-col rounded-2xl border border-border/60 bg-[var(--admin-sidebar-surface)] p-3 shadow-card lg:sticky lg:top-5 lg:h-[calc(100vh-2.5rem)] lg:max-h-[calc(100vh-2.5rem)] lg:w-72 lg:overflow-y-auto lg:overscroll-contain admin-scrollbar">
           <div className="flex items-center gap-3 border-b border-border/60 px-2 pb-4">
             <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-primary shadow-elegant">
               <Shield className="size-5 text-primary-foreground" />
@@ -102,7 +102,7 @@ function AdminPage() {
           <div className="px-2 py-4 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Workspace</div>
         </aside>
 
-      <Tabs defaultValue="projects" className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-5">
+      <Tabs defaultValue="projects" className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row-reverse lg:gap-5">
         <TabsList className="flex h-auto w-full shrink-0 flex-row justify-start gap-1 overflow-x-auto rounded-xl bg-muted/60 p-1 lg:h-auto lg:w-64 lg:flex-col lg:items-stretch lg:overflow-y-auto lg:overflow-x-hidden lg:bg-transparent lg:p-0 [&>button]:justify-start [&>button]:rounded-lg [&>button]:px-3 [&>button]:py-2.5 [&>button]:text-sm [&>button]:font-medium [&>button]:transition-colors [&>button][data-state=active]:bg-primary/10 [&>button][data-state=active]:text-primary [&>button][data-state=active]:shadow-none">
           <TabsTrigger value="projects"><FolderKanban className="h-4 w-4 mr-1.5" />Projects</TabsTrigger>
           <TabsTrigger value="events"><Calendar className="h-4 w-4 mr-1.5" />Events</TabsTrigger>
@@ -117,7 +117,7 @@ function AdminPage() {
           <TabsTrigger value="inbox"><Inbox className="h-4 w-4 mr-1.5" />Inbox {inbox.rows.length > 0 && <Badge className="ml-1.5 h-4 min-w-4 px-1 text-[10px]">{inbox.rows.length}</Badge>}</TabsTrigger>
         </TabsList>
 
-        <div className="min-w-0 flex-1 overflow-y-auto lg:h-[calc(100vh-2.5rem)] lg:pr-1">
+        <div className="min-w-0 flex-1 overflow-y-auto overscroll-contain admin-scrollbar lg:h-[calc(100vh-2.5rem)] lg:pr-1">
         <TabsContent value="projects" className="mt-0">
           <Card className="p-4 sm:p-6 border-border/50">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
