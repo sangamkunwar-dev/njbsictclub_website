@@ -240,6 +240,21 @@ export const useNotificationsStore = () => useCloud<Notification[]>(K_NOTIFICATI
 export const useSnippetsStore = () => useCloud<CodeSnippet[]>(K_SNIPPETS, seedSnippets);
 export const useIntegrationsStore = () => useCloud<Integrations>(K_INTEGRATIONS, {});
 
+// Local-only admin records used when no database integration is configured.
+export interface AdminRecord {
+  id: string;
+  title: string;
+  type: "event-report" | "project-report" | "bill";
+  date: string;
+  amount?: number;
+  status?: "draft" | "submitted" | "paid" | "pending";
+  description: string;
+  createdAt: string;
+}
+
+export const useAdminRecordsStore = () =>
+  useLocal<AdminRecord[]>("ict-admin-records", []);
+
 
 // Direct writers for non-hook contexts.
 export async function pushNotification(n: Omit<Notification, "id" | "createdAt">) {

@@ -15,6 +15,9 @@ import {
   Handshake,
   ClipboardList,
   KeyRound,
+  FileText,
+  Receipt,
+  WalletCards,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -57,6 +60,8 @@ import {
   type Project,
   type Event,
   type TeamMember,
+  useAdminRecordsStore,
+  type AdminRecord,
 } from "@/lib/store";
 import { MemberAccountsPanel } from "@/components/member-accounts-panel";
 import { toast } from "sonner";
@@ -113,6 +118,7 @@ function AdminPage() {
   const [meetings, setMeetings] = useMeetingsStore();
   const [bTasks, setBTasks] = useBroadcastTasksStore();
   const [partners, setPartners] = usePartnersStore();
+  const [adminRecords, setAdminRecords] = useAdminRecordsStore();
   const inbox = useSubmissions("contact");
   const regs = useSubmissions("event_registration");
   const apps = useSubmissions("membership_application");
@@ -142,6 +148,10 @@ function AdminPage() {
             <TabsTrigger value="events">
               <Calendar className="h-4 w-4 mr-1.5" />
               Events
+            </TabsTrigger>
+            <TabsTrigger value="records">
+              <FileText className="h-4 w-4 mr-1.5" />
+              Reports & bills
             </TabsTrigger>
             <TabsTrigger value="team">
               <Users className="h-4 w-4 mr-1.5" />
@@ -256,6 +266,80 @@ function AdminPage() {
                     </div>
                   ))}
                 </div>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="records" className="mt-6">
+              <Card className="border-border/50 p-4 sm:p-6">
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h2 className="font-semibold">Reports & bills ({adminRecords.length})</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Keep event reports, project updates, and expense bills together.
+                    </p>
+                  </div>
+                  <AdminRecordDialog
+                    onSave={(record) => {
+                      setAdminRecords((previous) => [record, ...previous]);
+                      toast.success("Record added");
+                    }}
+                    trigger={
+                      <Button size="sm" className="bg-gradient-primary">
+                        <Plus className="mr-1 h-4 w-4" />
+                        Add record
+                      </Button>
+                    }
+                  />
+                </div>
+                {adminRecords.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border px-6 py-12 text-center">
+                    <FileText className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
+                    <p className="font-medium">No reports or bills yet</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Add your first event report, project report, or bill.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {adminRecords.map((record) => (
+                      <div key={record.id} className="flex flex-wrap items-start gap-3 py-4">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          {record.type === "bill" ? <Receipt className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-medium">{record.title}</span>
+                            <Badge variant="secondary" className="capitalize">
+                              {record.type.replace("-", " ")}
+                            </Badge>
+                            {record.status && <Badge variant="outline" className="capitalize">{record.status}</Badge>}
+                          </div>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {formatAdminDateOnly(record.date)}
+                            {record.amount !== undefined && ` · Amount: ${record.amount.toLocaleString()}`}
+                          </p>
+                          {record.description && <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{record.description}</p>}
+                        </div>
+                        <AdminRecordDialog
+                          record={record}
+                          onSave={(next) => {
+                            setAdminRecords((previous) => previous.map((item) => item.id === next.id ? next : item));
+                            toast.success("Record updated");
+                          }}
+                          trigger={<Button size="sm" variant="outline"><Pencil className="h-3.5 w-3.5" /></Button>}
+                        />
+                        <Button size="sm" variant="ghost" className="text-destructive" onClick={() => {
+                          if (confirm(`Delete "${record.title}"?`)) {
+                            setAdminRecords((previous) => previous.filter((item) => item.id !== record.id));
+                            toast.success("Record deleted");
+                          }
+                        }}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </Card>
             </TabsContent>
 
@@ -859,6 +943,105 @@ function AdminPage() {
         </Tabs>
       </div>
     </main>
+  );
+}
+
+function AdminRecordDialog({
+  record,
+  onSave,
+  trigger,
+}: {
+  record?: AdminRecord;
+  onSave: (record: AdminRecord) => void;
+  trigger: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState(record?.title ?? "");
+  const [type, setType] = useState<AdminRecord["type"]>(record?.type ?? "event-report");
+  const [date, setDate] = useState(record?.date ?? new Date().toISOString().slice(0, 10));
+  const [amount, setAmount] = useState(record?.amount?.toString() ?? "");
+  const [status, setStatus] = useState<NonNullable<AdminRecord["status"]>>(record?.status ?? "draft");
+  const [description, setDescription] = useState(record?.description ?? "");
+
+  const save = () => {
+    if (!title.trim() || !date) {
+      toast.error("Title and date are required");
+      return;
+    }
+    onSave({
+      id: record?.id ?? uid(),
+      title: title.trim(),
+      type,
+      date,
+      amount: amount ? Number(amount) : undefined,
+      status: type === "bill" ? status : undefined,
+      description: description.trim(),
+      createdAt: record?.createdAt ?? new Date().toISOString(),
+    });
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{record ? "Edit record" : "Add report or bill"}</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 py-2">
+          <div className="grid gap-2">
+            <Label htmlFor="record-title">Title</Label>
+            <Input id="record-title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. Orientation event report" />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label>Record type</Label>
+              <Select value={type} onValueChange={(value) => setType(value as AdminRecord["type"])}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="event-report">Event report</SelectItem>
+                  <SelectItem value="project-report">Project report</SelectItem>
+                  <SelectItem value="bill">Bill / expense</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="record-date">Date</Label>
+              <Input id="record-date" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="record-amount">Amount (optional)</Label>
+              <Input id="record-amount" type="number" min="0" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0.00" />
+            </div>
+            <div className="grid gap-2">
+              <Label>Status</Label>
+              <Select value={status} onValueChange={(value) => setStatus(value as NonNullable<AdminRecord["status"]>)}>
+                <SelectTrigger disabled={type !== "bill"}><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="submitted">Submitted</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="record-description">Details</Label>
+            <Textarea id="record-description" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Add summary, vendors, outcomes, or notes..." rows={5} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button className="bg-gradient-primary" onClick={save}>
+            <WalletCards className="mr-1.5 h-4 w-4" />
+            {record ? "Save changes" : "Add record"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
