@@ -240,7 +240,7 @@ export const useNotificationsStore = () => useCloud<Notification[]>(K_NOTIFICATI
 export const useSnippetsStore = () => useCloud<CodeSnippet[]>(K_SNIPPETS, seedSnippets);
 export const useIntegrationsStore = () => useCloud<Integrations>(K_INTEGRATIONS, {});
 
-// Local-only admin records used when no database integration is configured.
+// Admin-managed reports and bills stored in Supabase app_data.
 export interface AdminRecord {
   id: string;
   title: string;
@@ -257,8 +257,7 @@ export interface AdminRecord {
   createdAt: string;
 }
 
-export const useAdminRecordsStore = () =>
-  useLocal<AdminRecord[]>("ict-admin-records", []);
+export const useAdminRecordsStore = () => useCloud<AdminRecord[]>("admin_records", []);
 
 
 // Direct writers for non-hook contexts.
