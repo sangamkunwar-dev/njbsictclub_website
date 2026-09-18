@@ -65,7 +65,7 @@ import {
 } from "@/lib/store";
 import { MemberAccountsPanel } from "@/components/member-accounts-panel";
 import { toast } from "sonner";
-import { imageUploadHelp, uploadImage } from "@/lib/image-upload";
+import { imageUploadHelp, uploadImage, uploadRecordAttachment } from "@/lib/image-upload";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -318,8 +318,20 @@ function AdminPage() {
                             {formatAdminDateOnly(record.date)}
                             {record.amount !== undefined && ` · Amount: ${record.amount.toLocaleString()}`}
                           </p>
-                          {record.description && <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{record.description}</p>}
-                        </div>
+  {record.description && <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{record.description}</p>}
+  {record.attachment && (
+  <a
+  href={record.attachment.url}
+  download={record.attachment.name}
+  target="_blank"
+  rel="noreferrer"
+  className="mt-3 inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium text-primary hover:bg-muted"
+  >
+  <FileText className="h-3.5 w-3.5" />
+  {record.attachment.name} · Download
+  </a>
+  )}
+  </div>
                         <AdminRecordDialog
                           record={record}
                           onSave={(next) => {
@@ -962,7 +974,21 @@ function AdminRecordDialog({
   const [amount, setAmount] = useState(record?.amount?.toString() ?? "");
   const [status, setStatus] = useState<NonNullable<AdminRecord["status"]>>(record?.status ?? "draft");
   const [description, setDescription] = useState(record?.description ?? "");
+  const [attachment, setAttachment] = useState(record?.attachment);
+  const [uploading, setUploading] = useState(false);
 
+  const handleAttachment = async (file: File) => {
+  setUploading(true);
+  try {
+  setAttachment(await uploadRecordAttachment(file));
+  toast.success("File attached");
+  } catch (error) {
+  toast.error(error instanceof Error ? error.message : "File upload failed");
+  } finally {
+  setUploading(false);
+  }
+  };
+  
   const save = () => {
     if (!title.trim() || !date) {
       toast.error("Title and date are required");
@@ -975,8 +1001,9 @@ function AdminRecordDialog({
       date,
       amount: amount ? Number(amount) : undefined,
       status: type === "bill" ? status : undefined,
-      description: description.trim(),
-      createdAt: record?.createdAt ?? new Date().toISOString(),
+  description: description.trim(),
+  attachment,
+  createdAt: record?.createdAt ?? new Date().toISOString(),
     });
     setOpen(false);
   };
@@ -1028,11 +1055,32 @@ function AdminRecordDialog({
               </Select>
             </div>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="record-description">Details</Label>
-            <Textarea id="record-description" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Add summary, vendors, outcomes, or notes..." rows={5} />
-          </div>
-        </div>
+  <div className="grid gap-2">
+  <Label htmlFor="record-description">Details</Label>
+  <Textarea id="record-description" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Add summary, vendors, outcomes, or notes..." rows={5} />
+  </div>
+  <div className="grid gap-2">
+  <Label htmlFor="record-attachment">Attach PDF or PNG</Label>
+  <Input
+  id="record-attachment"
+  type="file"
+  accept="application/pdf,image/png"
+  disabled={uploading}
+  onChange={(event) => {
+  const file = event.target.files?.[0];
+  if (file) void handleAttachment(file);
+  event.currentTarget.value = "";
+  }}
+  />
+  <p className="text-xs text-muted-foreground">Optional file for this report or bill. PDF/PNG, maximum 8 MB.</p>
+  {attachment && (
+  <div className="flex items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2 text-sm">
+  <span className="truncate">{attachment.name}</span>
+  <Button type="button" size="sm" variant="ghost" onClick={() => setAttachment(undefined)}>Remove</Button>
+  </div>
+  )}
+  </div>
+  </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
           <Button className="bg-gradient-primary" onClick={save}>

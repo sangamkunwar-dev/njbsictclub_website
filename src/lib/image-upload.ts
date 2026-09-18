@@ -18,6 +18,18 @@ export async function uploadImage(file: File, folder: "profiles" | "events" | "p
   return readAsDataUrl(file);
 }
 
+export async function uploadRecordAttachment(file: File) {
+  const isPdf = file.type === "application/pdf";
+  const isPng = file.type === "image/png";
+  if (!isPdf && !isPng) throw new Error("Please choose a PDF or PNG file.");
+  if (file.size > MAX_IMAGE_SIZE) throw new Error("Files must be smaller than 8 MB.");
+  return {
+    name: file.name,
+    url: await readAsDataUrl(file),
+    type: isPdf ? "pdf" as const : "png" as const,
+  };
+}
+
 export function imageFallback(name: string) {
   return `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=0ea5e9&fontFamily=Arial`;
 }

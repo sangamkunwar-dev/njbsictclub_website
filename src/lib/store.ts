@@ -249,6 +249,11 @@ export interface AdminRecord {
   amount?: number;
   status?: "draft" | "submitted" | "paid" | "pending";
   description: string;
+  attachment?: {
+    name: string;
+    url: string;
+    type: "pdf" | "png";
+  };
   createdAt: string;
 }
 
