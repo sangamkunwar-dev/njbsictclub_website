@@ -53,6 +53,7 @@ function ProfilePage() {
   const [shareUrl, setShareUrl] = useState("");
   const [shareChecked, setShareChecked] = useState(false);
   const [uploading, setUploading] = useState<"avatar" | "qr" | null>(null);
+  const [autoQr, setAutoQr] = useState<string | null>(null);
 
   useEffect(() => {
     const shared = new URLSearchParams(window.location.search).get("share");
@@ -95,8 +96,7 @@ function ProfilePage() {
   const save = async () => {
     const { error } = await supabase
       .from("profiles")
-      .update({ profile_data: profile })
-      .eq("id", user.id);
+      .upsert({ id: user.id, profile_data: profile }, { onConflict: "id" });
 
     if (error) {
       console.error("[v0] Failed to save profile details:", error);
@@ -196,7 +196,6 @@ function ProfilePage() {
   };
 
   // Real QR generated locally from the member ID; custom uploads override it.
-  const [autoQr, setAutoQr] = useState<string | null>(null);
   useEffect(() => {
     if (!user.memberId) { setAutoQr(null); return; }
     let alive = true;
