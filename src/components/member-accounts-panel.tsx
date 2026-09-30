@@ -84,15 +84,10 @@ export function MemberAccountsPanel() {
       const text = String(value ?? "");
       return /[\",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
     };
-    const headers = ["Username", "Full name", "Member ID", "Created at"];
+    const headers = ["Username", "Full name", "Member ID"];
     const csv = [
       headers,
-      ...safeRows.map((account) => [
-        account.username,
-        account.name,
-        account.memberId,
-        account.createdAt ? new Date(account.createdAt).toLocaleString() : "",
-      ]),
+      ...safeRows.map((account) => [account.username, account.name, account.memberId]),
     ]
       .map((row) => row.map(escapeCsv).join(","))
       .join("\r\n");
