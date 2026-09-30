@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { KeyRound, Plus, RefreshCw, Trash2, Copy, Pencil, LifeBuoy } from "lucide-react";
+import { Download, KeyRound, Plus, RefreshCw, Trash2, Copy, Pencil, LifeBuoy } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -74,6 +74,38 @@ export function MemberAccountsPanel() {
 
   const safeRows = Array.isArray(rows) ? rows : [];
 
+  const exportMembers = () => {
+    if (safeRows.length === 0) {
+      toast.info("There are no member logins to export.");
+      return;
+    }
+
+    const escapeCsv = (value: unknown) => {
+      const text = String(value ?? "");
+      return /[\",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    };
+    const headers = ["Username", "Full name", "Member ID", "Created at"];
+    const csv = [
+      headers,
+      ...safeRows.map((account) => [
+        account.username,
+        account.name,
+        account.memberId,
+        account.createdAt ? new Date(account.createdAt).toLocaleString() : "",
+      ]),
+    ]
+      .map((row) => row.map(escapeCsv).join(","))
+      .join("\r\n");
+    const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `member-logins-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success("Member login sheet downloaded");
+  };
+
   return (
     <div className="space-y-6">
       <Card className="p-4 sm:p-6 border-border/50">
@@ -89,6 +121,10 @@ export function MemberAccountsPanel() {
             </p>
           </div>
           <div className="flex gap-2 shrink-0">
+            <Button size="sm" variant="outline" onClick={exportMembers} disabled={loading || safeRows.length === 0}>
+              <Download className="h-4 w-4 mr-1" />
+              Export sheet
+            </Button>
             <Button size="sm" variant="outline" onClick={() => void refresh()} disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             </Button>
