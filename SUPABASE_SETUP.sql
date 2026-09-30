@@ -36,6 +36,9 @@ create table if not exists public.member_profiles (
 );
 
 alter table public.admin_allowlist enable row level security;
+-- Profile editor data is stored per authenticated user, not in browser localStorage.
+alter table public.profiles add column if not exists profile_data jsonb not null default '{}'::jsonb;
+
 alter table public.profiles enable row level security;
 alter table public.member_profiles enable row level security;
 

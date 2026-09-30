@@ -65,18 +65,46 @@ function ProfilePage() {
   }, [loading, user, nav, sharedProfile, shareChecked]);
 
   useEffect(() => {
-    if (user) {
-      const stored = localStorage.getItem(`ict-profile-${user.id}`);
-      if (stored) setProfile(JSON.parse(stored));
-    }
+    if (!user) return;
+
+    let cancelled = false;
+    void supabase
+      .from("profiles")
+      .select("profile_data")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("[v0] Failed to load profile details:", error);
+          toast.error("Unable to load your saved profile details");
+          return;
+        }
+        if (!cancelled && data?.profile_data && typeof data.profile_data === "object") {
+          setProfile({ ...EMPTY, ...(data.profile_data as Partial<ProfileData>) });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   if (sharedProfile) return <SharedProfileView profile={sharedProfile} />;
   if (!user) return null;
 
-  const save = () => {
-    localStorage.setItem(`ict-profile-${user.id}`, JSON.stringify(profile));
-    toast.success("Profile saved");
+  const save = async () => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ profile_data: profile })
+      .eq("id", user.id);
+
+    if (error) {
+      console.error("[v0] Failed to save profile details:", error);
+      toast.error("Profile could not be saved. Please try again.");
+      return;
+    }
+
+    toast.success("Profile saved to your account");
   };
 
   const createShareUrl = async () => {
