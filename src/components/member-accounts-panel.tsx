@@ -84,10 +84,10 @@ export function MemberAccountsPanel() {
       const text = String(value ?? "");
       return /[\",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
     };
-    const headers = ["Username", "Full name", "Member ID"];
+    const headers = ["Username", "Email", "Full name", "Member ID"];
     const csv = [
       headers,
-      ...safeRows.map((account) => [account.username, account.name, account.memberId]),
+      ...safeRows.map((account) => [account.username, account.email ?? "", account.name, account.memberId]),
     ]
       .map((row) => row.map(escapeCsv).join(","))
       .join("\r\n");
@@ -307,6 +307,7 @@ function AccountDialog({
     password: string;
     name: string;
     memberId: string;
+    email: string;
   }) => Promise<void>;
   trigger: React.ReactNode;
 }) {
@@ -314,13 +315,13 @@ function AccountDialog({
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState(() => {
     const id = randomMemberId();
-    return { username: id, password: "", name: "", memberId: id };
+    return { username: id, password: "", name: "", memberId: id, email: "" };
   });
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.memberId.trim() || form.password.length < 6) {
-      toast.error("Member ID and a 6+ character password are required");
+    if (!form.memberId.trim() || form.password.length < 6 || !form.email.trim()) {
+      toast.error("Email, Member ID, and a 6+ character password are required");
       return;
     }
     setBusy(true);
@@ -329,7 +330,7 @@ function AccountDialog({
       await onSave({ ...form, username: memberId.toLowerCase(), memberId });
       setOpen(false);
       const nextId = randomMemberId();
-      setForm({ username: nextId, password: "", name: "", memberId: nextId });
+      setForm({ username: nextId, password: "", name: "", memberId: nextId, email: "" });
     } catch (err) {
       const message = errMsg(err);
       toast.error(
@@ -357,6 +358,20 @@ function AccountDialog({
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="Aayush Sharma"
             />
+          </div>
+          <div>
+            <Label htmlFor="member-email">Member email</Label>
+            <Input
+              id="member-email"
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              placeholder="member@example.com"
+              required
+            />
+            <p className="text-[11px] text-muted-foreground mt-1">
+              This email lets the member use Google sign-in for the member dashboard.
+            </p>
           </div>
           <div>
             <Label>Member ID (used as username)</Label>

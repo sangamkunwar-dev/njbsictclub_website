@@ -43,14 +43,15 @@ export const listMemberAccounts = async (_input?: Call<{ accessToken?: string }>
   return [];
 };
 
-export const createMemberAccount = async ({ data }: Call<{ username: string; password: string; name: string; memberId: string }>) => {
+export const createMemberAccount = async ({ data }: Call<{ username: string; password: string; name: string; memberId: string; email?: string }>) => {
   if (!data) throw new Error("Member details are missing. Please complete the form and try again.");
   return callAdmin<{ id: string }>({ 
     op: "create", 
     username: data.username,
     memberId: data.memberId || data.username, 
     password: data.password, 
-    name: data.name 
+    name: data.name,
+    email: data.email?.trim().toLowerCase() || undefined,
   });
 };
 
@@ -82,6 +83,7 @@ export type MemberAccount = {
   name: string;
   memberId: string;
   createdAt: string;
+  email?: string;
 };
 
 export const MEMBER_EMAIL_DOMAIN = "njbsict.club";

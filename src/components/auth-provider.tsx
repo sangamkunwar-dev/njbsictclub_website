@@ -92,6 +92,24 @@ function toAppUser(user: User): AppUser {
   return app;
 }
 
+async function hydrateMemberIdentity(app: AppUser): Promise<AppUser> {
+  if (!app.email || app.role === "admin" || app.role === "member") return app;
+
+  const { data, error } = await supabase
+    .from("member_profiles")
+    .select("member_id, display_name")
+    .ilike("email", app.email)
+    .maybeSingle();
+
+  if (error || !data) return app;
+  return {
+    ...app,
+    role: "member",
+    memberId: data.member_id,
+    name: data.display_name || app.name,
+  };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<AppUser | null>(null);
@@ -103,16 +121,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event: string, s: Session | null) => {
+    const applySession = async (s: Session | null) => {
       setSession(s);
-      setUser(s?.user ? toAppUser(s.user) : null);
+      if (!s?.user) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+      const appUser = await hydrateMemberIdentity(toAppUser(s.user));
+      setUser(appUser);
       setLoading(false);
+    };
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event: string, s: Session | null) => {
+      void applySession(s);
     });
 
     supabase.auth.getSession().then(({ data }: { data: { session: Session | null } }) => {
-      setSession(data.session);
-      setUser(data.session?.user ? toAppUser(data.session.user) : null);
-      setLoading(false);
+      void applySession(data.session);
     });
 
     return () => sub.subscription.unsubscribe();

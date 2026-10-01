@@ -30,6 +30,7 @@ create table if not exists public.member_profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   member_id text not null unique,
   display_name text not null default '',
+  email text,
   org_url text,
   website text,
   created_at timestamptz not null default now()
@@ -40,6 +41,10 @@ alter table public.admin_allowlist enable row level security;
 alter table public.profiles add column if not exists profile_data jsonb not null default '{}'::jsonb;
 
 alter table public.profiles enable row level security;
+alter table public.member_profiles add column if not exists email text;
+create unique index if not exists member_profiles_email_unique_idx
+  on public.member_profiles (lower(email)) where email is not null;
+
 alter table public.member_profiles enable row level security;
 
 drop policy if exists profiles_self_read on public.profiles;
