@@ -51,7 +51,8 @@ function resolveRole(user: User): { role: UserRole; memberId?: string } {
   if (role === "member" || memberId || email.endsWith(MEMBER_EMAIL_DOMAIN)) {
     return {
       role: "member",
-      memberId: memberId ?? (email.includes("@") ? email.split("@")[0].toUpperCase() : generateMemberId()),
+      memberId:
+        memberId ?? (email.includes("@") ? email.split("@")[0].toUpperCase() : generateMemberId()),
     };
   }
 
@@ -61,7 +62,7 @@ function resolveRole(user: User): { role: UserRole; memberId?: string } {
 function toAppUser(user: User): AppUser {
   const { role, memberId } = resolveRole(user);
   const meta = user.user_metadata ?? {};
-  
+
   // Clean up display name
   const rawName = meta.full_name ?? meta.name ?? (user.email ? user.email.split("@")[0] : "Member");
 
@@ -95,10 +96,14 @@ function toAppUser(user: User): AppUser {
 async function hydrateMemberIdentity(app: AppUser): Promise<AppUser> {
   if (!app.email || app.role === "admin" || app.role === "member") return app;
 
+  // A member may sign in with Google using the same email that was saved by
+  // an admin (or in the member profile). Resolve that email after OAuth so
+  // the new provider identity receives the member dashboard role too.
+  const email = app.email.trim().toLowerCase();
   const { data, error } = await supabase
     .from("member_profiles")
     .select("member_id, display_name")
-    .ilike("email", app.email)
+    .ilike("email", email)
     .maybeSingle();
 
   if (error || !data) return app;

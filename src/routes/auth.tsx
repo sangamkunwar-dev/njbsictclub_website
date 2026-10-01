@@ -109,10 +109,14 @@ function SignInForm() {
 
   const signInWithOAuth = async (provider: "google" | "github") => {
     setOauthLoading(provider);
+    const enteredEmail = form.identifier.trim().toLowerCase();
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: import.meta.env.VITE_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth`,
+        ...(provider === "google" && enteredEmail.includes("@")
+          ? { queryParams: { login_hint: enteredEmail } }
+          : {}),
       },
     });
     if (error) {
@@ -258,9 +262,19 @@ function ForgotPasswordDialog() {
         const isMemberId = /^(njb|njbs|member)[-_ ]?[a-z0-9]+$/i.test(value);
         const username = isMemberId
           ? undefined
-          : value.endsWith(`@${MEMBER_EMAIL_DOMAIN}`) ? value.split("@")[0] : value;
-        await requestReset({ data: { username, memberId: isMemberId ? value.toUpperCase().replace(/[ ]+/g, "-") : undefined, note } });
-        toast.success("Recovery request sent. The club admin will send a secure reset link to your registered email.");
+          : value.endsWith(`@${MEMBER_EMAIL_DOMAIN}`)
+            ? value.split("@")[0]
+            : value;
+        await requestReset({
+          data: {
+            username,
+            memberId: isMemberId ? value.toUpperCase().replace(/[ ]+/g, "-") : undefined,
+            note,
+          },
+        });
+        toast.success(
+          "Recovery request sent. The club admin will send a secure reset link to your registered email.",
+        );
       }
       setOpen(false);
       setIdentifier("");
@@ -295,8 +309,8 @@ function ForgotPasswordDialog() {
               placeholder="you@example.com or NJBS121348789"
             />
             <p className="mt-1 text-[10px] text-muted-foreground">
-              Email accounts receive a secure reset link. Member IDs and usernames are sent to the club
-              admin, who sends the reset link to the member&apos;s registered email.
+              Email accounts receive a secure reset link. Member IDs and usernames are sent to the
+              club admin, who sends the reset link to the member&apos;s registered email.
             </p>
           </div>
           <div>
