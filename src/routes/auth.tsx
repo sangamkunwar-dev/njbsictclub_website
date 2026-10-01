@@ -336,11 +336,13 @@ function ForgotPasswordDialog() {
 const signUpSchema = z.object({
   name: z.string().trim().min(2, "Enter your full name").max(100),
   email: z.string().trim().email("Enter a valid email"),
+  phone: z.string().trim().min(7, "Enter your phone number").max(30),
+  className: z.string().trim().min(1, "Enter your class").max(80),
   password: z.string().min(6, "Password must be at least 6 characters").max(100),
 });
 
 function SignUpForm() {
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", className: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<"google" | "github" | null>(null);
 
@@ -376,7 +378,12 @@ function SignUpForm() {
       options: {
         emailRedirectTo:
           import.meta.env.VITE_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth`,
-        data: { full_name: r.data.name, role: "visitor" },
+        data: {
+          full_name: r.data.name,
+          role: "visitor",
+          phone: r.data.phone,
+          class_name: r.data.className,
+        },
       },
     });
     setLoading(false);
@@ -408,6 +415,26 @@ function SignUpForm() {
           autoComplete="email"
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label>Phone number</Label>
+        <Input
+          type="tel"
+          autoComplete="tel"
+          value={form.phone}
+          onChange={(e) => setForm({ ...form, phone: e.target.value })}
+          placeholder="98XXXXXXXX"
+          required
+        />
+      </div>
+      <div>
+        <Label>Class</Label>
+        <Input
+          value={form.className}
+          onChange={(e) => setForm({ ...form, className: e.target.value })}
+          placeholder="e.g. 10 A"
           required
         />
       </div>

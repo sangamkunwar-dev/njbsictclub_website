@@ -31,6 +31,8 @@ function decodeProfile(value: string): ProfileData & { name: string; email: stri
 }
 
 interface ProfileData {
+  phone: string;
+  className: string;
   bio: string;
   skills: string[];
   github: string;
@@ -41,7 +43,7 @@ interface ProfileData {
   qr: string | null;
 }
 
-const EMPTY: ProfileData = { bio: "", skills: [], github: "", linkedin: "", twitter: "", website: "", avatar: null, qr: null };
+const EMPTY: ProfileData = { phone: "", className: "", bio: "", skills: [], github: "", linkedin: "", twitter: "", website: "", avatar: null, qr: null };
 
 function ProfilePage() {
   const { user, loading } = useAuth();
@@ -252,7 +254,29 @@ function ProfilePage() {
         </Card>
 
         <Card className="p-6 border-border/50 md:col-span-2">
-          <Label>Bio</Label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="profile-phone">Phone number</Label>
+              <Input
+                id="profile-phone"
+                type="tel"
+                autoComplete="tel"
+                value={profile.phone}
+                onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                placeholder="98XXXXXXXX"
+              />
+            </div>
+            <div>
+              <Label htmlFor="profile-class">Class</Label>
+              <Input
+                id="profile-class"
+                value={profile.className}
+                onChange={(e) => setProfile({ ...profile, className: e.target.value })}
+                placeholder="e.g. 10 A"
+              />
+            </div>
+          </div>
+          <Label className="mt-5 block">Bio</Label>
           <Textarea value={profile.bio} onChange={(e) => setProfile({ ...profile, bio: e.target.value })} placeholder="Tell the club about yourself..." rows={4} className="mt-1.5" maxLength={500} />
 
           <Label className="mt-4 block">Tech stack</Label>
