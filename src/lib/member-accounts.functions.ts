@@ -55,9 +55,15 @@ export const createMemberAccount = async ({ data }: Call<{ username: string; pas
   });
 };
 
-export const updateMemberAccount = async ({ data }: Call<{ userId: string; name: string; memberId: string }>) => {
+export const updateMemberAccount = async ({
+  data,
+}: Call<{ userId: string; name: string; memberId: string; email?: string }>) => {
   if (!data) throw new Error("Member details are missing. Please try again.");
-  return callAdmin<{ ok: true }>({ op: "update", ...data });
+  return callAdmin<{ ok: true }>({
+    op: "update",
+    ...data,
+    email: data.email?.trim().toLowerCase() || null,
+  });
 };
 
 export const setMemberPassword = async ({ data }: Call<{ userId: string; password: string }>) => {

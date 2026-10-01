@@ -414,15 +414,25 @@ function EditAccountDialog({
   onSave,
 }: {
   account: MemberAccount;
-  onSave: (v: { name: string; memberId: string }) => Promise<void>;
+  onSave: (v: { name: string; memberId: string; email: string }) => Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [form, setForm] = useState({ name: account.name, memberId: account.memberId });
+  const [form, setForm] = useState({
+    name: account.name,
+    memberId: account.memberId,
+    email: account.email ?? "",
+  });
 
   useEffect(() => {
-    if (open) setForm({ name: account.name, memberId: account.memberId });
-  }, [open, account.name, account.memberId]);
+    if (open) {
+      setForm({
+        name: account.name,
+        memberId: account.memberId,
+        email: account.email ?? "",
+      });
+    }
+  }, [open, account.name, account.memberId, account.email]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -452,6 +462,19 @@ function EditAccountDialog({
           <div>
             <Label>Full name</Label>
             <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          </div>
+          <div>
+            <Label htmlFor={`edit-member-email-${account.id}`}>Member email</Label>
+            <Input
+              id={`edit-member-email-${account.id}`}
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              placeholder="member@example.com"
+            />
+            <p className="text-[11px] text-muted-foreground mt-1">
+              This email is used for Google sign-in and member notifications.
+            </p>
           </div>
           <div>
             <Label>Member ID</Label>
