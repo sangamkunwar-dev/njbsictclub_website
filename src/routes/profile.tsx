@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { QrCode, Save, X, Download, Share2, Eye, Copy, ArrowLeft } from "lucide-react";
+import { QrCode, Save, X, Download, Share2, Eye, Copy, ArrowLeft, Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
