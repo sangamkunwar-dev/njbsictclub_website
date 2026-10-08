@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Upload, QrCode, Save, X, Download, Share2, Eye, Copy, ArrowLeft } from "lucide-react";
+import { QrCode, Save, X, Download, Share2, Eye, Copy, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/components/auth-provider";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { imageUploadHelp, uploadImage } from "@/lib/image-upload";
 
 export const Route = createFileRoute("/profile")({
   component: ProfilePage,
@@ -81,7 +80,6 @@ function ProfilePage() {
   const [showPreview, setShowPreview] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
   const [shareChecked, setShareChecked] = useState(false);
-  const [uploading, setUploading] = useState<"avatar" | "qr" | null>(null);
   const [autoQr, setAutoQr] = useState<string | null>(null);
 
   useEffect(() => {
@@ -257,19 +255,6 @@ function ProfilePage() {
 
   const copyShareUrl = async () => copyText(shareUrl || (await createShareUrl()));
 
-  const readFile = async (file: File, key: "avatar" | "qr") => {
-    setUploading(key);
-    try {
-      const url = await uploadImage(file, "profiles", user.id);
-      setProfile((p) => ({ ...p, [key]: url }));
-      toast.success(key === "avatar" ? "Profile photo uploaded" : "Custom QR uploaded");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Image upload failed");
-    } finally {
-      setUploading(null);
-    }
-  };
-
   const addSkill = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && skillInput.trim()) {
       e.preventDefault();
@@ -366,21 +351,6 @@ function ProfilePage() {
                   <Upload className="mx-auto mt-14 size-6 text-muted-foreground" />
                 )}
               </div>
-              <label className="cursor-pointer text-xs text-primary hover:underline">
-                {uploading === "avatar" ? "Uploading…" : "Upload new photo"}
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp,image/gif"
-                  className="hidden"
-                  disabled={uploading !== null}
-                  onChange={(e) =>
-                    e.target.files?.[0] && void readFile(e.target.files[0], "avatar")
-                  }
-                />
-                <span className="mt-1 block text-center text-[11px] text-muted-foreground">
-                  {imageUploadHelp}
-                </span>
-              </label>
             </div>
           </Card>
 
@@ -508,16 +478,6 @@ function ProfilePage() {
                   <Download className="h-3 w-3" /> Download QR
                 </a>
               )}
-              <label className="cursor-pointer text-xs text-muted-foreground hover:text-primary text-center">
-                {uploading === "qr" ? "Uploading…" : "Upload custom QR"}
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp,image/gif"
-                  className="hidden"
-                  disabled={uploading !== null}
-                  onChange={(e) => e.target.files?.[0] && void readFile(e.target.files[0], "qr")}
-                />
-              </label>
               {profile.qr && (
                 <button
                   onClick={() => setProfile({ ...profile, qr: null })}

@@ -9,11 +9,9 @@ import {
   MapPin,
   CalendarClock,
   TimerReset,
-  ImagePlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -87,13 +85,11 @@ function formatCountdown(ms: number) {
 
 export function MeetingCheckIn({ user, meetings }: Props) {
   const [meetingId, setMeetingId] = useState<string>(meetings[0]?.id ?? "");
-  const [manualId, setManualId] = useState("");
   const [scanning, setScanning] = useState(false);
   const [joined, setJoined] = useState<JoinMap>({});
   const [now, setNow] = useState(() => Date.now());
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const processingRef = useRef(false);
-  const imageInputRef = useRef<HTMLInputElement | null>(null);
   const containerId = "meeting-qr-reader";
 
   useEffect(() => {
@@ -203,7 +199,7 @@ export function MeetingCheckIn({ user, meetings }: Props) {
     });
     if (error) {
       console.error("[v0] Meeting check-in failed:", error);
-      toast.error("Could not record attendance. Please try again or use Verify ID.");
+      toast.error("Could not record attendance. Please scan the member QR code again.");
       processingRef.current = false;
       return;
     }
@@ -211,21 +207,6 @@ export function MeetingCheckIn({ user, meetings }: Props) {
     processingRef.current = false;
     setNow(Date.now());
     toast.success(`Access unlocked for "${meeting.title}"`);
-  };
-
-  const scanImage = async (file: File) => {
-    if (!meetingId) {
-      toast.error("Choose a meeting first");
-      return;
-    }
-    try {
-      const scanner = new Html5Qrcode(`meeting-qr-file-${user.id}`);
-      const decoded = await scanner.scanFile(file, false);
-      await scanner.clear();
-      await handleDecoded(decoded);
-    } catch {
-      toast.error("No QR code was found in that image. Upload a clear member QR image.");
-    }
   };
 
   const start = async () => {
@@ -367,58 +348,6 @@ export function MeetingCheckIn({ user, meetings }: Props) {
                   </Button>
                 </>
               )}
-
-              <div id={`meeting-qr-file-${user.id}`} className="hidden" />
-              <input
-                ref={imageInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (file) void scanImage(file);
-                  event.currentTarget.value = "";
-                }}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={() => imageInputRef.current?.click()}
-              >
-                <ImagePlus className="h-4 w-4 mr-2" /> Upload QR image
-              </Button>
-
-              <div className="rounded-lg border border-border/60 p-3 space-y-2">
-                <p className="text-[11px] text-muted-foreground">
-                  No camera? Type your Member ID (shown on your Profile) instead.
-                </p>
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <Input
-                    value={manualId}
-                    onChange={(e) => setManualId(e.target.value)}
-                    placeholder={user.memberId ?? "NJBs12134…"}
-                    className="font-mono"
-                  />
-                  <Button
-                    variant="outline"
-                    className="shrink-0"
-                    onClick={() => {
-                      if (!meetingId) {
-                        toast.error("Choose a meeting first");
-                        return;
-                      }
-                      if (!manualId.trim()) {
-                        toast.error("Enter your Member ID");
-                        return;
-                      }
-                      void handleDecoded(manualId.trim()).then(() => setManualId(""));
-                    }}
-                  >
-                    Verify ID
-                  </Button>
-                </div>
-              </div>
             </>
           )}
 
