@@ -81,6 +81,7 @@ function ProfilePage() {
   const [shareUrl, setShareUrl] = useState("");
   const [shareChecked, setShareChecked] = useState(false);
   const [autoQr, setAutoQr] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   useEffect(() => {
     const shared = new URLSearchParams(window.location.search).get("share");
@@ -255,6 +256,37 @@ function ProfilePage() {
 
   const copyShareUrl = async () => copyText(shareUrl || (await createShareUrl()));
 
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Profile photos must be 5 MB or smaller.");
+      return;
+    }
+
+    setAvatarUploading(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setProfile((current) => ({ ...current, avatar: reader.result }));
+        toast.success("Profile photo selected. Save your profile to keep it.");
+      } else {
+        toast.error("Could not read that image. Please try another photo.");
+      }
+      setAvatarUploading(false);
+    };
+    reader.onerror = () => {
+      toast.error("Could not read that image. Please try again.");
+      setAvatarUploading(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const addSkill = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && skillInput.trim()) {
       e.preventDefault();
@@ -351,6 +383,26 @@ function ProfilePage() {
                   <Upload className="mx-auto mt-14 size-6 text-muted-foreground" />
                 )}
               </div>
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium transition-colors hover:bg-muted">
+                <Upload className="size-4" />
+                {avatarUploading ? "Reading photo…" : "Upload photo"}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className="sr-only"
+                  disabled={avatarUploading}
+                  onChange={handleAvatarChange}
+                />
+              </label>
+              {profile.avatar && (
+                <button
+                  type="button"
+                  className="text-xs text-destructive hover:underline"
+                  onClick={() => setProfile((current) => ({ ...current, avatar: null }))}
+                >
+                  Remove photo
+                </button>
+              )}
             </div>
           </Card>
 
