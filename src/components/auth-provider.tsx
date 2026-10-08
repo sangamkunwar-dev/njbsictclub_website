@@ -96,22 +96,46 @@ function toAppUser(user: User): AppUser {
 async function hydrateMemberIdentity(app: AppUser): Promise<AppUser> {
   if (!app.email || app.role === "admin" || app.role === "member") return app;
 
-  // A member may sign in with Google using the same email that was saved by
-  // an admin (or in the member profile). Resolve that email after OAuth so
-  // the new provider identity receives the member dashboard role too.
+  // OAuth can create a different Supabase user id from the one used by a
+  // member account. Match the verified provider email to the saved member
+  // record before the router decides whether the user is a visitor.
   const email = app.email.trim().toLowerCase();
-  const { data, error } = await supabase
+  const { data: member, error } = await supabase
     .from("member_profiles")
     .select("member_id, display_name")
     .ilike("email", email)
     .maybeSingle();
 
-  if (error || !data) return app;
+  if (!error && member) {
+    return {
+      ...app,
+      role: "member",
+      memberId: member.member_id,
+      name: member.display_name || app.name,
+    };
+  }
+
+  // Also support profiles saved directly from the Profile page. This covers
+  // records whose email lives inside the profile_data JSON instead of the
+  // admin-managed member_profiles table.
+  const { data: savedProfile } = await supabase
+    .from("profiles")
+    .select("profile_data")
+    .eq("id", app.id)
+    .maybeSingle();
+  const profileData = savedProfile?.profile_data;
+  if (!profileData || typeof profileData !== "object" || Array.isArray(profileData)) return app;
+
+  const savedEmail = (profileData as { email?: unknown }).email;
+  if (typeof savedEmail !== "string" || savedEmail.trim().toLowerCase() !== email) return app;
+
+  const savedMemberId =
+    (profileData as { memberId?: unknown; member_id?: unknown }).memberId ??
+    (profileData as { member_id?: unknown }).member_id;
   return {
     ...app,
     role: "member",
-    memberId: data.member_id,
-    name: data.display_name || app.name,
+    memberId: typeof savedMemberId === "string" ? savedMemberId : app.memberId,
   };
 }
 

@@ -61,7 +61,9 @@ function AuthPage() {
   const { redirect } = useSearch({ from: "/auth" });
 
   useEffect(() => {
-    if (user) nav({ to: (redirect as string) || "/" });
+    if (!user) return;
+    const destination = redirect || (user.role === "member" || user.role === "admin" ? "/dashboard" : "/");
+    nav({ to: destination });
   }, [user, redirect, nav]);
 
   return (
