@@ -118,12 +118,23 @@ async function hydrateMemberIdentity(app: AppUser): Promise<AppUser> {
   // Also support profiles saved directly from the Profile page. This covers
   // records whose email lives inside the profile_data JSON instead of the
   // admin-managed member_profiles table.
+  // A Google account can have a new Supabase user id even when its verified
+  // email belongs to a profile saved before Google sign-in was enabled.
   const { data: savedProfile } = await supabase
     .from("profiles")
     .select("profile_data")
-    .eq("id", app.id)
-    .maybeSingle();
-  const profileData = savedProfile?.profile_data;
+    .or(`id.eq.${app.id},profile_data->>email.eq.${email}`)
+    .limit(2);
+  const profileData = savedProfile?.find((record) => {
+    const data = record.profile_data;
+    return (
+      data &&
+      typeof data === "object" &&
+      !Array.isArray(data) &&
+      typeof (data as { email?: unknown }).email === "string" &&
+      (data as { email: string }).email.trim().toLowerCase() === email
+    );
+  })?.profile_data;
   if (!profileData || typeof profileData !== "object" || Array.isArray(profileData)) return app;
 
   const savedEmail = (profileData as { email?: unknown }).email;
