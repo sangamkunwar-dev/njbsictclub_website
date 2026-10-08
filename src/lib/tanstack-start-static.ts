@@ -5,10 +5,9 @@ type ServerFunction<TArgs extends unknown[] = [options?: unknown], TResult = unk
 type ServerFunctionBuilder = {
   middleware: (...args: unknown[]) => ServerFunctionBuilder;
   validator: (...args: unknown[]) => ServerFunctionBuilder;
-  handler: <TResult>(handler: (...args: unknown[]) => TResult) => ServerFunction<
-    [options?: unknown],
-    Awaited<TResult>
-  >;
+  handler: <TResult>(
+    handler: (...args: unknown[]) => TResult,
+  ) => ServerFunction<[options?: unknown], Awaited<TResult>>;
 };
 
 export function createServerFn(_options?: unknown): ServerFunctionBuilder {
@@ -26,7 +25,7 @@ export function createServerFn(_options?: unknown): ServerFunctionBuilder {
   return builder;
 }
 
-export function useServerFn<T extends (...args: any[]) => any>(fn: T): T {
+export function useServerFn<T extends (...args: unknown[]) => unknown>(fn: T): T {
   return fn;
 }
 

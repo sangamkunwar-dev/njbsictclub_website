@@ -60,7 +60,9 @@ function ContactPage() {
   return (
     <div className="container mx-auto px-3 sm:px-4 md:px-6 py-12 md:py-16">
       <div className="text-center mb-12">
-        <Badge variant="secondary" className="mb-3">Get in touch</Badge>
+        <Badge variant="secondary" className="mb-3">
+          Get in touch
+        </Badge>
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold font-display">Contact us</h1>
         <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
           Questions, sponsorship, or collaboration — we'd love to hear from you.
@@ -72,12 +74,16 @@ function ContactPage() {
           <Card className="p-5 border-border/50">
             <Mail className="h-5 w-5 text-primary mb-2" />
             <div className="text-xs text-muted-foreground">Email</div>
-            <a href="mailto:njbsictclub@gmail.com" className="font-medium hover:text-primary">njbsictclub@gmail.com</a>
+            <a href="mailto:njbsictclub@gmail.com" className="font-medium hover:text-primary">
+              njbsictclub@gmail.com
+            </a>
           </Card>
           <Card className="p-5 border-border/50">
             <MapPin className="h-5 w-5 text-primary mb-2" />
             <div className="text-xs text-muted-foreground">Location</div>
-            <div className="font-medium">Nawa Jyoti English Boarding School, Tilottama-8, Nepal</div>
+            <div className="font-medium">
+              Nawa Jyoti English Boarding School, Tilottama-8, Nepal
+            </div>
           </Card>
           <Card className="p-5 border-border/50">
             <div className="text-xs text-muted-foreground mb-2">Follow us</div>
@@ -102,15 +108,35 @@ function ContactPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-sm font-medium mb-1.5 block">Name</label>
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Your name" required maxLength={100} />
+              <Input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="Your name"
+                required
+                maxLength={100}
+              />
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">Email</label>
-              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="you@example.com" required maxLength={255} />
+              <Input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="you@example.com"
+                required
+                maxLength={255}
+              />
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">Message</label>
-              <Textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="How can we help?" required maxLength={1000} rows={6} />
+              <Textarea
+                value={form.message}
+                onChange={(e) => setForm({ ...form, message: e.target.value })}
+                placeholder="How can we help?"
+                required
+                maxLength={1000}
+                rows={6}
+              />
             </div>
             <Button type="submit" disabled={submitting} className="w-full bg-gradient-primary">
               <Send className="h-4 w-4 mr-2" /> {submitting ? "Sending..." : "Send message"}

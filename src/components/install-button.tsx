@@ -22,7 +22,10 @@ export function InstallButton({ className }: { className?: string }) {
       e.preventDefault();
       setDeferred(e as BeforeInstallPromptEvent);
     };
-    const onInstalled = () => { setInstalled(true); setDeferred(null); };
+    const onInstalled = () => {
+      setInstalled(true);
+      setDeferred(null);
+    };
     window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
     return () => {

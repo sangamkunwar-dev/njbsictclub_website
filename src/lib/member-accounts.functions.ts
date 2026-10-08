@@ -7,9 +7,10 @@ type Call<T> = { data?: T };
 async function callAdmin<T>(body: Record<string, unknown>, requireAdmin = true): Promise<T> {
   const { data, error: sessionError } = await supabase.auth.getSession();
   if (sessionError) throw new Error("Unable to read your admin session. Please sign in again.");
-  
+
   const token = data.session?.access_token;
-  if (requireAdmin && !token) throw new Error("Your admin session has expired. Please sign in again.");
+  if (requireAdmin && !token)
+    throw new Error("Your admin session has expired. Please sign in again.");
 
   const payload = {
     ...body,
@@ -23,8 +24,14 @@ async function callAdmin<T>(body: Record<string, unknown>, requireAdmin = true):
 
   if (error) {
     const message = error.message || "Could not connect to the member account service.";
-    if (message.includes("claims") || message.includes("context") || message.includes("FunctionsFetchError")) {
-      throw new Error("The member account service is unavailable. Please refresh the page and sign in again.");
+    if (
+      message.includes("claims") ||
+      message.includes("context") ||
+      message.includes("FunctionsFetchError")
+    ) {
+      throw new Error(
+        "The member account service is unavailable. Please refresh the page and sign in again.",
+      );
     }
     throw new Error(message);
   }
@@ -33,8 +40,12 @@ async function callAdmin<T>(body: Record<string, unknown>, requireAdmin = true):
   return result as T;
 }
 
-export const listMemberAccounts = async (_input?: Call<{ accessToken?: string }>): Promise<MemberAccount[]> => {
-  const res = await callAdmin<any>({ op: "list" });
+export const listMemberAccounts = async (
+  _input?: Call<{ accessToken?: string }>,
+): Promise<MemberAccount[]> => {
+  const res = await callAdmin<
+    MemberAccount[] | { data?: MemberAccount[]; members?: MemberAccount[] }
+  >({ op: "list" });
 
   if (Array.isArray(res)) return res;
   if (res && Array.isArray(res.data)) return res.data;
@@ -43,13 +54,21 @@ export const listMemberAccounts = async (_input?: Call<{ accessToken?: string }>
   return [];
 };
 
-export const createMemberAccount = async ({ data }: Call<{ username: string; password: string; name: string; memberId: string; email?: string }>) => {
+export const createMemberAccount = async ({
+  data,
+}: Call<{
+  username: string;
+  password: string;
+  name: string;
+  memberId: string;
+  email?: string;
+}>) => {
   if (!data) throw new Error("Member details are missing. Please complete the form and try again.");
-  return callAdmin<{ id: string }>({ 
-    op: "create", 
+  return callAdmin<{ id: string }>({
+    op: "create",
     username: data.username,
-    memberId: data.memberId || data.username, 
-    password: data.password, 
+    memberId: data.memberId || data.username,
+    password: data.password,
     name: data.name,
     email: data.email?.trim().toLowerCase() || undefined,
   });
@@ -76,7 +95,9 @@ export const deleteMemberAccount = async ({ data }: Call<{ userId: string }>) =>
   return callAdmin<{ ok: true }>({ op: "delete", ...data });
 };
 
-export const requestMemberPasswordReset = async ({ data }: Call<{ username?: string; memberId?: string; note?: string }>) => {
+export const requestMemberPasswordReset = async ({
+  data,
+}: Call<{ username?: string; memberId?: string; note?: string }>) => {
   if (!data || (!data.username && !data.memberId)) {
     throw new Error("Enter your member ID or username.");
   }
@@ -93,6 +114,7 @@ export type MemberAccount = {
 };
 
 export const MEMBER_EMAIL_DOMAIN = "njbsict.club";
-export const randomMemberId = () => `MEMBER-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+export const randomMemberId = () =>
+  `MEMBER-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 
 export type { Call };

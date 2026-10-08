@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { Bell } from "lucide-react";
 import { useNotificationsStore, type Notification } from "@/lib/store";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -13,7 +17,11 @@ const SEEN_KEY = "ict-notifications-seen";
 
 function loadSeen(): string[] {
   if (typeof window === "undefined") return [];
-  try { return JSON.parse(localStorage.getItem(SEEN_KEY) ?? "[]") as string[]; } catch { return []; }
+  try {
+    return JSON.parse(localStorage.getItem(SEEN_KEY) ?? "[]") as string[];
+  } catch {
+    return [];
+  }
 }
 
 export function NotificationBell() {
@@ -39,17 +47,22 @@ export function NotificationBell() {
     if (changed) {
       try {
         localStorage.setItem(SEEN_KEY, JSON.stringify([...seenIds.current].slice(-200)));
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
   }, [notifications]);
-
 
   const unread = notifications.filter((n) => new Date(n.createdAt).getTime() > readAt).length;
 
   const markRead = () => {
     const now = Date.now();
     setReadAt(now);
-    try { localStorage.setItem(READ_KEY, String(now)); } catch { /* ignore */ }
+    try {
+      localStorage.setItem(READ_KEY, String(now));
+    } catch {
+      /* ignore */
+    }
   };
 
   return (
@@ -89,11 +102,17 @@ function NotificationRow({ n }: { n: Notification }) {
     <div className={cn("px-3 py-2.5 hover:bg-surface/60 rounded-md")}>
       <div className="text-sm font-medium">{n.title}</div>
       {n.body && <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</div>}
-      <div className="text-[10px] text-muted-foreground mt-1">{new Date(n.createdAt).toLocaleString()}</div>
+      <div className="text-[10px] text-muted-foreground mt-1">
+        {new Date(n.createdAt).toLocaleString()}
+      </div>
     </div>
   );
   if (n.link) {
-    return <li><Link to={n.link}>{body}</Link></li>;
+    return (
+      <li>
+        <Link to={n.link}>{body}</Link>
+      </li>
+    );
   }
   return <li>{body}</li>;
 }

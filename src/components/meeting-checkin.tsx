@@ -1,10 +1,26 @@
 import { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
-import { QrCode, X, CheckCircle2, Lock, Video, MapPin, CalendarClock, TimerReset, ImagePlus } from "lucide-react";
+import {
+  QrCode,
+  X,
+  CheckCircle2,
+  Lock,
+  Video,
+  MapPin,
+  CalendarClock,
+  TimerReset,
+  ImagePlus,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { DEFAULT_ACCESS_MINUTES, type Meeting } from "@/lib/store";
@@ -19,9 +35,10 @@ interface Props {
 type JoinMap = Record<string, string>;
 
 function accessWindow(meeting: Meeting, checkedInAt: string) {
-  const minutes = meeting.accessMinutes && meeting.accessMinutes > 0
-    ? meeting.accessMinutes
-    : DEFAULT_ACCESS_MINUTES;
+  const minutes =
+    meeting.accessMinutes && meeting.accessMinutes > 0
+      ? meeting.accessMinutes
+      : DEFAULT_ACCESS_MINUTES;
   const start = new Date(checkedInAt).getTime();
   return { start, end: start + minutes * 60_000, minutes };
 }
@@ -35,12 +52,20 @@ function codeMatchesMember(scanned: string, memberId: string) {
   const expected = norm(memberId);
   if (!expected) return false;
   const candidates = new Set<string>();
-  const add = (value: unknown) => { if (typeof value === "string" && value.trim()) candidates.add(value); };
+  const add = (value: unknown) => {
+    if (typeof value === "string" && value.trim()) candidates.add(value);
+  };
   add(scanned);
   try {
     const parsed = JSON.parse(scanned) as Record<string, unknown>;
-    add(parsed.memberId); add(parsed.member_id); add(parsed.username); add(parsed.id); add(parsed.email);
-  } catch { /* plain text QR */ }
+    add(parsed.memberId);
+    add(parsed.member_id);
+    add(parsed.username);
+    add(parsed.id);
+    add(parsed.email);
+  } catch {
+    /* plain text QR */
+  }
   for (const candidate of candidates) {
     const actual = norm(candidate);
     if (actual === expected || actual.includes(expected) || expected.includes(actual)) return true;
@@ -90,10 +115,14 @@ export function MeetingCheckIn({ user, meetings }: Props) {
         // Migrate the older array-of-ids format.
         if (Array.isArray(parsed)) {
           const map: JoinMap = {};
-          parsed.forEach((id: string) => { map[id] = new Date(0).toISOString(); });
+          parsed.forEach((id: string) => {
+            map[id] = new Date(0).toISOString();
+          });
           setJoined(map);
         } else setJoined(parsed as JoinMap);
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
     // …then the cloud record of this member's check-ins (RLS: own rows).
     let alive = true;
@@ -106,13 +135,22 @@ export function MeetingCheckIn({ user, meetings }: Props) {
         .order("created_at", { ascending: false });
       if (!alive || !data) return;
       const map: JoinMap = {};
-      (data as Array<{ event_id: string | null; created_at: string; data?: { submissionType?: string } | null }>).forEach((r) => {
-        if (r.event_id && r.data?.submissionType === "meeting_attendance" && !map[r.event_id]) map[r.event_id] = r.created_at;
+      (
+        data as Array<{
+          event_id: string | null;
+          created_at: string;
+          data?: { submissionType?: string } | null;
+        }>
+      ).forEach((r) => {
+        if (r.event_id && r.data?.submissionType === "meeting_attendance" && !map[r.event_id])
+          map[r.event_id] = r.created_at;
       });
       setJoined(map);
       localStorage.setItem(`ict-joined-${user.id}`, JSON.stringify(map));
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [user.id]);
 
   const persistJoined = (next: JoinMap) => {
@@ -122,8 +160,16 @@ export function MeetingCheckIn({ user, meetings }: Props) {
 
   const stop = async () => {
     if (scannerRef.current) {
-      try { await scannerRef.current.stop(); } catch { /* ignore */ }
-      try { scannerRef.current.clear(); } catch { /* ignore */ }
+      try {
+        await scannerRef.current.stop();
+      } catch {
+        /* ignore */
+      }
+      try {
+        scannerRef.current.clear();
+      } catch {
+        /* ignore */
+      }
       scannerRef.current = null;
     }
     setScanning(false);
@@ -168,7 +214,10 @@ export function MeetingCheckIn({ user, meetings }: Props) {
   };
 
   const scanImage = async (file: File) => {
-    if (!meetingId) { toast.error("Choose a meeting first"); return; }
+    if (!meetingId) {
+      toast.error("Choose a meeting first");
+      return;
+    }
     try {
       const scanner = new Html5Qrcode(`meeting-qr-file-${user.id}`);
       const decoded = await scanner.scanFile(file, false);
@@ -180,7 +229,10 @@ export function MeetingCheckIn({ user, meetings }: Props) {
   };
 
   const start = async () => {
-    if (!meetingId) { toast.error("Choose a meeting first"); return; }
+    if (!meetingId) {
+      toast.error("Choose a meeting first");
+      return;
+    }
     setScanning(true);
     // Wait for the container to mount before starting the scanner.
     await new Promise((r) => setTimeout(r, 50));
@@ -190,8 +242,12 @@ export function MeetingCheckIn({ user, meetings }: Props) {
       await scanner.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 240, height: 240 } },
-        (decoded) => { void handleDecoded(decoded); },
-        () => { /* ignore per-frame errors */ },
+        (decoded) => {
+          void handleDecoded(decoded);
+        },
+        () => {
+          /* ignore per-frame errors */
+        },
       );
     } catch (err) {
       console.error(err);
@@ -200,7 +256,12 @@ export function MeetingCheckIn({ user, meetings }: Props) {
     }
   };
 
-  useEffect(() => () => { void stop(); }, []);
+  useEffect(
+    () => () => {
+      void stop();
+    },
+    [],
+  );
 
   const meeting = meetings.find((m) => m.id === meetingId);
   const checkedInAt = meeting ? joined[meeting.id] : undefined;
@@ -218,13 +279,13 @@ export function MeetingCheckIn({ user, meetings }: Props) {
       </h3>
 
       {meetings.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-8">
-          No meetings scheduled yet.
-        </p>
+        <p className="text-sm text-muted-foreground text-center py-8">No meetings scheduled yet.</p>
       ) : (
         <div className="space-y-3">
           <Select value={meetingId} onValueChange={setMeetingId}>
-            <SelectTrigger><SelectValue placeholder="Choose meeting…" /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder="Choose meeting…" />
+            </SelectTrigger>
             <SelectContent>
               {meetings.map((m) => (
                 <SelectItem key={m.id} value={m.id}>
@@ -253,10 +314,14 @@ export function MeetingCheckIn({ user, meetings }: Props) {
               <div className="text-sm font-semibold">{meeting.title}</div>
               <div className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <CalendarClock className="h-3.5 w-3.5" />
-                {new Date(meeting.date).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
+                {new Date(meeting.date).toLocaleString(undefined, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
               </div>
               <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5" />{meeting.location || "Location TBA"}
+                <MapPin className="h-3.5 w-3.5" />
+                {meeting.location || "Location TBA"}
               </div>
               <div className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <TimerReset className="h-3.5 w-3.5" />
@@ -288,11 +353,15 @@ export function MeetingCheckIn({ user, meetings }: Props) {
               </div>
               {!scanning ? (
                 <Button onClick={start} className="w-full bg-gradient-primary">
-                  <QrCode className="h-4 w-4 mr-2" /> {expired ? "Scan QR to rejoin" : "Scan QR to join"}
+                  <QrCode className="h-4 w-4 mr-2" />{" "}
+                  {expired ? "Scan QR to rejoin" : "Scan QR to join"}
                 </Button>
               ) : (
                 <>
-                  <div id={containerId} className="w-full rounded-lg overflow-hidden border border-border" />
+                  <div
+                    id={containerId}
+                    className="w-full rounded-lg overflow-hidden border border-border"
+                  />
                   <Button onClick={() => void stop()} variant="outline" className="w-full">
                     <X className="h-4 w-4 mr-2" /> Cancel
                   </Button>
@@ -311,7 +380,12 @@ export function MeetingCheckIn({ user, meetings }: Props) {
                   event.currentTarget.value = "";
                 }}
               />
-              <Button type="button" variant="outline" className="w-full" onClick={() => imageInputRef.current?.click()}>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => imageInputRef.current?.click()}
+              >
                 <ImagePlus className="h-4 w-4 mr-2" /> Upload QR image
               </Button>
 
@@ -330,8 +404,14 @@ export function MeetingCheckIn({ user, meetings }: Props) {
                     variant="outline"
                     className="shrink-0"
                     onClick={() => {
-                      if (!meetingId) { toast.error("Choose a meeting first"); return; }
-                      if (!manualId.trim()) { toast.error("Enter your Member ID"); return; }
+                      if (!meetingId) {
+                        toast.error("Choose a meeting first");
+                        return;
+                      }
+                      if (!manualId.trim()) {
+                        toast.error("Enter your Member ID");
+                        return;
+                      }
                       void handleDecoded(manualId.trim()).then(() => setManualId(""));
                     }}
                   >
@@ -343,9 +423,9 @@ export function MeetingCheckIn({ user, meetings }: Props) {
           )}
 
           <p className="text-[11px] text-muted-foreground">
-            Point the camera at your Member QR (from your Profile page) to record attendance and unlock the meeting.
+            Point the camera at your Member QR (from your Profile page) to record attendance and
+            unlock the meeting.
           </p>
-
         </div>
       )}
     </Card>

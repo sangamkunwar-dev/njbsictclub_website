@@ -79,13 +79,19 @@
   --input: oklch(0.92 0.01 255);
   --ring: oklch(0.55 0.22 265);
 
-  --gradient-hero: radial-gradient(ellipse at top, oklch(0.72 0.18 220 / 0.25), transparent 60%),
+  --gradient-hero:
+    radial-gradient(ellipse at top, oklch(0.72 0.18 220 / 0.25), transparent 60%),
     radial-gradient(ellipse at bottom left, oklch(0.55 0.22 265 / 0.18), transparent 55%);
   --gradient-primary: linear-gradient(135deg, oklch(0.55 0.22 265), oklch(0.72 0.18 220));
-  --gradient-glow: linear-gradient(135deg, oklch(0.72 0.18 220 / 0.15), oklch(0.55 0.22 265 / 0.15));
+  --gradient-glow: linear-gradient(
+    135deg,
+    oklch(0.72 0.18 220 / 0.15),
+    oklch(0.55 0.22 265 / 0.15)
+  );
   --shadow-elegant: 0 20px 60px -20px oklch(0.55 0.22 265 / 0.25);
   --shadow-glow: 0 0 40px oklch(0.72 0.18 220 / 0.35);
-  --shadow-card: 0 1px 2px oklch(0.16 0.03 260 / 0.04), 0 8px 24px -12px oklch(0.16 0.03 260 / 0.08);
+  --shadow-card:
+    0 1px 2px oklch(0.16 0.03 260 / 0.04), 0 8px 24px -12px oklch(0.16 0.03 260 / 0.08);
   --admin-sidebar-width: 17rem;
   --admin-sidebar-surface: color-mix(in oklab, var(--card) 88%, var(--primary) 12%);
 }
@@ -115,7 +121,12 @@
       color 300ms ease;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
   }
@@ -160,16 +171,26 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-12px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
 }
 @utility animate-float {
   animation: float 6s ease-in-out infinite;
 }
 
 @keyframes pulse-glow {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.8; }
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
 }
 @utility animate-pulse-glow {
   animation: pulse-glow 3s ease-in-out infinite;

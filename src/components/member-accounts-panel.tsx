@@ -55,8 +55,8 @@ export function MemberAccountsPanel() {
       // ✅ FIX: Ensure the response is actually an array before setting state
       if (Array.isArray(data)) {
         setRows(data);
-      } else if (data && Array.isArray((data as any).data)) {
-        setRows((data as any).data);
+      } else if (data && typeof data === "object" && "data" in data && Array.isArray(data.data)) {
+        setRows(data.data as MemberAccount[]);
       } else {
         setRows([]);
       }
@@ -82,12 +82,17 @@ export function MemberAccountsPanel() {
 
     const escapeCsv = (value: unknown) => {
       const text = String(value ?? "");
-      return /[\",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+      return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
     };
     const headers = ["Username", "Email", "Full name", "Member ID"];
     const csv = [
       headers,
-      ...safeRows.map((account) => [account.username, account.email ?? "", account.name, account.memberId]),
+      ...safeRows.map((account) => [
+        account.username,
+        account.email ?? "",
+        account.name,
+        account.memberId,
+      ]),
     ]
       .map((row) => row.map(escapeCsv).join(","))
       .join("\r\n");
@@ -116,7 +121,12 @@ export function MemberAccountsPanel() {
             </p>
           </div>
           <div className="flex gap-2 shrink-0">
-            <Button size="sm" variant="outline" onClick={exportMembers} disabled={loading || safeRows.length === 0}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={exportMembers}
+              disabled={loading || safeRows.length === 0}
+            >
               <Download className="h-4 w-4 mr-1" />
               Export sheet
             </Button>

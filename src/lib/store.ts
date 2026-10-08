@@ -38,7 +38,11 @@ function readSnapshot<T>(key: string): T | undefined {
 
 function writeSnapshot(key: string, value: unknown) {
   if (typeof window === "undefined") return;
-  try { localStorage.setItem(snapKey(key), JSON.stringify(value)); } catch { /* ignore */ }
+  try {
+    localStorage.setItem(snapKey(key), JSON.stringify(value));
+  } catch {
+    /* ignore */
+  }
 }
 
 function notify(key: string) {
@@ -66,11 +70,7 @@ async function loadKey<T>(key: string, seed: T): Promise<T> {
   if (existing) return existing as Promise<T>;
   const startVersion = version.get(key) ?? 0;
   const p = (async () => {
-    const { data } = await supabase
-      .from("app_data")
-      .select("value")
-      .eq("key", key)
-      .maybeSingle();
+    const { data } = await supabase.from("app_data").select("value").eq("key", key).maybeSingle();
     // A local write happened while fetching — keep the local value.
     if ((version.get(key) ?? 0) !== startVersion) return cache.get(key) as T;
     const value = (data?.value ?? seed) as T;
@@ -131,7 +131,7 @@ function useCloud<T>(key: string, seed: T) {
   const [ready, setReady] = useState<boolean>(() => loaded.has(key));
 
   useEffect(() => {
-    let alive = true;
+    const alive = true;
     setState(initial());
     if (!loaded.has(key)) {
       loadKey<T>(key, seed).then((v) => {
@@ -152,18 +152,16 @@ function useCloud<T>(key: string, seed: T) {
       void (async () => {
         // Make sure we mutate the freshest cloud value, never a stale seed.
         const prev = loaded.has(key) ? (cache.get(key) as T) : await loadKey<T>(key, seed);
-        const next =
-          typeof updater === "function" ? (updater as (p: T) => T)(prev) : updater;
-        await writeKey(key, next).catch(() => { /* logged in writeKey */ });
+        const next = typeof updater === "function" ? (updater as (p: T) => T)(prev) : updater;
+        await writeKey(key, next).catch(() => {
+          /* logged in writeKey */
+        });
       })();
-
-
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [key],
   );
   return [state, set, ready] as const;
-
 }
 
 // ---------- local-only per-user store (tasks / attendance) ----------
@@ -177,13 +175,20 @@ function useLocal<T>(key: string, seed: T) {
       return seed;
     }
   });
-  const set = useCallback((u: T | ((p: T) => T)) => {
-    setState((prev) => {
-      const next = typeof u === "function" ? (u as (p: T) => T)(prev) : u;
-      try { localStorage.setItem(key, JSON.stringify(next)); } catch { /* ignore */ }
-      return next;
-    });
-  }, [key]);
+  const set = useCallback(
+    (u: T | ((p: T) => T)) => {
+      setState((prev) => {
+        const next = typeof u === "function" ? (u as (p: T) => T)(prev) : u;
+        try {
+          localStorage.setItem(key, JSON.stringify(next));
+        } catch {
+          /* ignore */
+        }
+        return next;
+      });
+    },
+    [key],
+  );
   return [state, set] as const;
 }
 
@@ -203,23 +208,44 @@ export type { Project, TeamMember, CodeSnippet };
 export type Event = ClubEvent & { customFields?: CustomField[] };
 
 export interface Meeting {
-  id: string; title: string; date: string; location: string; agenda: string; link?: string;
+  id: string;
+  title: string;
+  date: string;
+  location: string;
+  agenda: string;
+  link?: string;
   /** How long access stays unlocked after a member scans their QR (minutes). */
   accessMinutes?: number;
 }
 export interface BroadcastTask {
-  id: string; title: string; description: string;
-  priority: "low" | "medium" | "high"; dueDate: string; createdAt: string;
+  id: string;
+  title: string;
+  description: string;
+  priority: "low" | "medium" | "high";
+  dueDate: string;
+  createdAt: string;
 }
 export interface Partner {
-  id: string; name: string; logo: string; url: string; description?: string;
+  id: string;
+  name: string;
+  logo: string;
+  url: string;
+  description?: string;
 }
 export interface Notification {
-  id: string; kind: "project" | "event" | "partner" | "meeting" | "task" | "info";
-  title: string; body?: string; link?: string; createdAt: string;
+  id: string;
+  kind: "project" | "event" | "partner" | "meeting" | "task" | "info";
+  title: string;
+  body?: string;
+  link?: string;
+  createdAt: string;
 }
 export interface CustomField {
-  id: string; label: string; type: "text" | "textarea" | "select"; required: boolean; options?: string[];
+  id: string;
+  label: string;
+  type: "text" | "textarea" | "select";
+  required: boolean;
+  options?: string[];
 }
 export interface Integrations {
   /** GA4 measurement ID, e.g. G-XXXXXXX */
@@ -259,7 +285,6 @@ export interface AdminRecord {
 
 export const useAdminRecordsStore = () => useCloud<AdminRecord[]>("admin_records", []);
 
-
 // Direct writers for non-hook contexts.
 export async function pushNotification(n: Omit<Notification, "id" | "createdAt">) {
   const key = K_NOTIFICATIONS;
@@ -271,32 +296,57 @@ export async function pushNotification(n: Omit<Notification, "id" | "createdAt">
 
 // ---------- personal (local-only) ----------
 export interface Task {
-  id: string; title: string; done: boolean;
-  priority: "low" | "medium" | "high"; createdAt: string;
+  id: string;
+  title: string;
+  done: boolean;
+  priority: "low" | "medium" | "high";
+  createdAt: string;
 }
 export const useTasksStore = (userId: string | undefined) =>
   useLocal<Task[]>(`ict-tasks-${userId ?? "anon"}`, []);
 
 export interface AttendanceRecord {
-  eventId: string; attended: boolean; date: string;
+  eventId: string;
+  attended: boolean;
+  date: string;
 }
 export const useAttendanceStore = (userId: string | undefined) =>
   useLocal<AttendanceRecord[]>(`ict-attendance-${userId ?? "anon"}`, []);
 
 // ---------- submissions helpers ----------
 export interface EventRegistration {
-  id: string; eventId: string; name: string; email: string; phone: string;
-  note: string; userId?: string; createdAt: string; extra?: Record<string, string>;
+  id: string;
+  eventId: string;
+  name: string;
+  email: string;
+  phone: string;
+  note: string;
+  userId?: string;
+  createdAt: string;
+  extra?: Record<string, string>;
 }
 export interface Message {
-  id: string; name: string; email: string; message: string; createdAt: string;
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  createdAt: string;
 }
 export interface MembershipApplication {
-  id: string; name: string; email: string; phone: string; department: string;
-  year: string; reason: string; skills: string; createdAt: string;
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  department: string;
+  year: string;
+  reason: string;
+  skills: string;
+  createdAt: string;
 }
 export interface Subscriber {
-  id: string; email: string; createdAt: string;
+  id: string;
+  email: string;
+  createdAt: string;
 }
 
 /** Send a public form submission (contact, RSVP, application, subscribe). */
@@ -314,33 +364,61 @@ export async function submitToInbox(
   if (error) throw error;
 }
 
-
 /** Admin-side hook: reads submissions of a given kind + realtime. */
-export function useSubmissions(kind: "contact" | "event_registration" | "membership_application" | "subscriber" | "password_reset_request") {
-  const [rows, setRows] = useState<Array<{ id: string; kind: string; data: Record<string, unknown>; event_id: string | null; user_id: string | null; created_at: string }>>([]);
+export function useSubmissions(
+  kind:
+    | "contact"
+    | "event_registration"
+    | "membership_application"
+    | "subscriber"
+    | "password_reset_request",
+) {
+  const [rows, setRows] = useState<
+    Array<{
+      id: string;
+      kind: string;
+      data: Record<string, unknown>;
+      event_id: string | null;
+      user_id: string | null;
+      created_at: string;
+    }>
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let alive = true;
     (async () => {
       const { data } = await supabase
-        .from("submissions").select("*")
+        .from("submissions")
+        .select("*")
         .eq("kind", kind)
         .order("created_at", { ascending: false });
-      if (alive) { setRows((data ?? []) as never); setLoading(false); }
+      if (alive) {
+        setRows((data ?? []) as never);
+        setLoading(false);
+      }
     })();
     const ch = supabase
       .channel(`subs-${kind}`)
-      .on("postgres_changes",
+      .on(
+        "postgres_changes",
         { event: "*", schema: "public", table: "submissions", filter: `kind=eq.${kind}` },
         () => {
-          supabase.from("submissions").select("*")
+          supabase
+            .from("submissions")
+            .select("*")
             .eq("kind", kind)
             .order("created_at", { ascending: false })
-            .then(({ data }: { data: unknown[] | null }) => alive && setRows((data ?? []) as never));
-        })
+            .then(
+              ({ data }: { data: unknown[] | null }) => alive && setRows((data ?? []) as never),
+            );
+        },
+      )
       .subscribe();
-    return () => { alive = false; supabase.removeChannel(ch); };
+    return () => {
+      alive = false;
+      supabase.removeChannel(ch);
+    };
   }, [kind]);
 
   const remove = useCallback(async (id: string) => {
@@ -355,26 +433,42 @@ export function useMyEventRegistrations(userId: string | undefined) {
   const [ids, setIds] = useState<Set<string>>(new Set());
   useEffect(() => {
     if (!userId) return;
-    let alive = true;
+    const alive = true;
     (async () => {
       const { data } = await supabase
-        .from("submissions").select("event_id")
+        .from("submissions")
+        .select("event_id")
         .eq("kind", "event_registration")
         .eq("user_id", userId);
-      if (alive) setIds(new Set(((data ?? []) as Array<{ event_id: string | null }>).map((r) => r.event_id).filter(Boolean) as string[]));
+      if (alive)
+        setIds(
+          new Set(
+            ((data ?? []) as Array<{ event_id: string | null }>)
+              .map((r) => r.event_id)
+              .filter(Boolean) as string[],
+          ),
+        );
     })();
     const ch = supabase
       .channel(`my-regs-${userId}`)
-      .on("postgres_changes",
+      .on(
+        "postgres_changes",
         { event: "INSERT", schema: "public", table: "submissions", filter: `user_id=eq.${userId}` },
         (payload: { new?: unknown }) => {
           const eid = (payload.new as { event_id?: string; kind?: string })?.event_id;
           if (eid && (payload.new as { kind?: string }).kind === "event_registration") {
-            setIds((prev) => { const n = new Set(prev); n.add(eid); return n; });
+            setIds((prev) => {
+              const n = new Set(prev);
+              n.add(eid);
+              return n;
+            });
           }
-        })
+        },
+      )
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      supabase.removeChannel(ch);
+    };
   }, [userId]);
   return ids;
 }
@@ -387,9 +481,17 @@ export function uid() {
 // Kept for backwards compat (auth-provider still calls it — no-op now that users
 // come from the auth session, not localStorage).
 export interface RegisteredUser {
-  id: string; email: string; name: string; avatar?: string | null;
-  role: "visitor" | "member" | "admin"; memberId?: string;
-  createdAt: string; lastSeenAt: string;
+  id: string;
+  email: string;
+  name: string;
+  avatar?: string | null;
+  role: "visitor" | "member" | "admin";
+  memberId?: string;
+  createdAt: string;
+  lastSeenAt: string;
 }
-export function upsertRegisteredUser(_u: RegisteredUser) { /* no-op */ }
-export const useRegisteredUsersStore = () => [[] as RegisteredUser[], (() => {}) as (v: unknown) => void] as const;
+export function upsertRegisteredUser(_u: RegisteredUser) {
+  /* no-op */
+}
+export const useRegisteredUsersStore = () =>
+  [[] as RegisteredUser[], (() => {}) as (v: unknown) => void] as const;

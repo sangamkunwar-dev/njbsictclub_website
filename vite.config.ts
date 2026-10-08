@@ -11,23 +11,31 @@ const staticTanStackStart = fileURLToPath(
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
-  base: "/",
-  server: { host: "::", port: 8080 },
-  resolve: {
-    alias: {
-      "@tanstack/react-start/server": staticTanStackStart,
-      "@tanstack/react-start": staticTanStackStart,
+    base: "/",
+    server: { host: "::", port: 8080 },
+    resolve: {
+      alias: {
+        "@tanstack/react-start/server": staticTanStackStart,
+        "@tanstack/react-start": staticTanStackStart,
+      },
     },
-  },
-  plugins: [tsconfigPaths(), tailwindcss(), react()],
-  build: {
-    outDir: "dist",
-    emptyOutDir: true,
-    sourcemap: true,
-  },
-  define: {
-    "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL || ""),
-    "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_PUBLISHABLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || ""),
-  },
+    plugins: [tsconfigPaths(), tailwindcss(), react()],
+    build: {
+      outDir: "dist",
+      emptyOutDir: true,
+      sourcemap: true,
+    },
+    define: {
+      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
+        env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL || "",
+      ),
+      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
+        env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+          env.SUPABASE_PUBLISHABLE_KEY ||
+          env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+          env.SUPABASE_ANON_KEY ||
+          "",
+      ),
+    },
   };
 });

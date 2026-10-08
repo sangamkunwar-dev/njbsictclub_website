@@ -43,12 +43,21 @@ function ResetPasswordPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) { toast.error("Password must be at least 6 characters"); return; }
-    if (password !== confirm) { toast.error("Passwords don't match"); return; }
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    if (password !== confirm) {
+      toast.error("Passwords don't match");
+      return;
+    }
     setBusy(true);
     const { error } = await supabase.auth.updateUser({ password });
     setBusy(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Password updated — you're signed in.");
     void nav({ to: "/" });
   };
@@ -56,7 +65,9 @@ function ResetPasswordPage() {
   return (
     <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center px-4 py-16 bg-hero">
       <Card className="w-full max-w-md p-5 sm:p-8 border-border/50 shadow-elegant glass">
-        <div className="flex justify-center mb-6"><Logo showText={false} className="scale-125" /></div>
+        <div className="flex justify-center mb-6">
+          <Logo showText={false} className="scale-125" />
+        </div>
         <h1 className="text-2xl font-bold font-display text-center">Set a new password</h1>
         {!ready ? (
           <p className="text-sm text-muted-foreground text-center mt-3">
@@ -66,11 +77,25 @@ function ResetPasswordPage() {
           <form onSubmit={submit} className="space-y-4 mt-6">
             <div>
               <Label>New password</Label>
-              <Input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+              <Input
+                type="password"
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
             </div>
             <div>
               <Label>Confirm password</Label>
-              <Input type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required minLength={6} />
+              <Input
+                type="password"
+                autoComplete="new-password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                required
+                minLength={6}
+              />
             </div>
             <Button type="submit" disabled={busy} className="w-full bg-gradient-primary">
               {busy ? "Saving…" : "Update password"}

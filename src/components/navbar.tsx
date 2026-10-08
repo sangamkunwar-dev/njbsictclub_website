@@ -70,7 +70,7 @@ export function Navbar() {
           {/* Desktop & Tablet Buttons */}
           <InstallButton className="hidden sm:inline-flex" />
           <NotificationBell />
-          
+
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -81,7 +81,9 @@ export function Navbar() {
                       {initials}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="hidden md:inline text-sm font-medium">{user.name.split(" ")[0]}</span>
+                  <span className="hidden md:inline text-sm font-medium">
+                    {user.name.split(" ")[0]}
+                  </span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -104,30 +106,44 @@ export function Navbar() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/profile"><UserIcon className="mr-2 h-4 w-4" />Profile</Link>
+                  <Link to="/profile">
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    Profile
+                  </Link>
                 </DropdownMenuItem>
                 {(user.role === "member" || user.role === "admin") && (
                   <DropdownMenuItem asChild>
-                    <Link to="/dashboard"><LayoutDashboard className="mr-2 h-4 w-4" />Dashboard</Link>
+                    <Link to="/dashboard">
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
                   </DropdownMenuItem>
                 )}
                 {user.role === "admin" && (
                   <DropdownMenuItem asChild>
-                    <Link to="/admin"><Shield className="mr-2 h-4 w-4" />Admin Panel</Link>
+                    <Link to="/admin">
+                      <Shield className="mr-2 h-4 w-4" />
+                      Admin Panel
+                    </Link>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => signOut()} className="text-destructive">
-                  <LogOut className="mr-2 h-4 w-4" />Sign out
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button asChild size="sm" className="hidden sm:inline-flex bg-gradient-primary hover:shadow-glow transition-all">
+            <Button
+              asChild
+              size="sm"
+              className="hidden sm:inline-flex bg-gradient-primary hover:shadow-glow transition-all"
+            >
               <Link to="/auth">Sign in</Link>
             </Button>
           )}
-          
+
           {/* Mobile Menu Toggle Button */}
           <button
             onClick={() => setOpen((o) => !o)}
@@ -153,12 +169,14 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-            
+
             <div className="flex items-center gap-2 pt-2 border-t border-border/50 mt-1">
               <InstallButton className="flex-1 sm:hidden" />
               {!user && (
                 <Button asChild size="sm" className="flex-1 bg-gradient-primary">
-                  <Link to="/auth" onClick={() => setOpen(false)}>Sign in</Link>
+                  <Link to="/auth" onClick={() => setOpen(false)}>
+                    Sign in
+                  </Link>
                 </Button>
               )}
             </div>

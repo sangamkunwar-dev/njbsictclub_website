@@ -3,13 +3,20 @@ const MAX_IMAGE_SIZE = 8 * 1024 * 1024;
 function readAsDataUrl(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => typeof reader.result === "string" ? resolve(reader.result) : reject(new Error("Could not read this image."));
+    reader.onload = () =>
+      typeof reader.result === "string"
+        ? resolve(reader.result)
+        : reject(new Error("Could not read this image."));
     reader.onerror = () => reject(new Error("Could not read this image."));
     reader.readAsDataURL(file);
   });
 }
 
-export async function uploadImage(file: File, folder: "profiles" | "events" | "projects" | "members" | "partners", userId = "shared") {
+export async function uploadImage(
+  file: File,
+  folder: "profiles" | "events" | "projects" | "members" | "partners",
+  userId = "shared",
+) {
   if (!file.type.startsWith("image/")) throw new Error("Please choose an image file.");
   if (file.size > MAX_IMAGE_SIZE) throw new Error("Images must be smaller than 8 MB.");
 
@@ -26,7 +33,7 @@ export async function uploadRecordAttachment(file: File) {
   return {
     name: file.name,
     url: await readAsDataUrl(file),
-    type: isPdf ? "pdf" as const : "png" as const,
+    type: isPdf ? ("pdf" as const) : ("png" as const),
   };
 }
 

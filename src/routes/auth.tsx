@@ -62,7 +62,8 @@ function AuthPage() {
 
   useEffect(() => {
     if (!user) return;
-    const destination = redirect || (user.role === "member" || user.role === "admin" ? "/dashboard" : "/");
+    const destination =
+      redirect || (user.role === "member" || user.role === "admin" ? "/dashboard" : "/");
     nav({ to: destination });
   }, [user, redirect, nav]);
 

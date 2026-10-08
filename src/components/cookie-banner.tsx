@@ -14,7 +14,9 @@ export function CookieBanner() {
 
   const decide = (choice: "accepted" | "rejected") => {
     localStorage.setItem(KEY, choice);
-    window.dispatchEvent(new CustomEvent("njbs:cookie-consent", { detail: { analytics: choice === "accepted" } }));
+    window.dispatchEvent(
+      new CustomEvent("njbs:cookie-consent", { detail: { analytics: choice === "accepted" } }),
+    );
     setVisible(false);
   };
 
@@ -30,7 +32,9 @@ export function CookieBanner() {
           <div className="text-sm">
             <p className="font-semibold tracking-tight">Your privacy, your choice</p>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              We use essential storage to keep NJBS ICT Club secure and working. Choose Accept to enable privacy-respecting usage analytics and improve the experience, or Reject to keep analytics off.
+              We use essential storage to keep NJBS ICT Club secure and working. Choose Accept to
+              enable privacy-respecting usage analytics and improve the experience, or Reject to
+              keep analytics off.
             </p>
           </div>
         </div>

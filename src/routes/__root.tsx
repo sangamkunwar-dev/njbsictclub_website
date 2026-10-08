@@ -1,10 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  Outlet,
-  Link,
-  createRootRouteWithContext,
-  useRouter,
-} from "@tanstack/react-router";
+import { Outlet, Link, createRootRouteWithContext, useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
@@ -51,12 +46,17 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <p className="mt-2 text-sm text-muted-foreground">Try refreshing or return home.</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
-            onClick={() => { router.invalidate(); reset(); }}
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
             className="rounded-lg bg-gradient-primary px-4 py-2 text-sm font-medium text-primary-foreground"
           >
             Try again
           </button>
-          <a href="/" className="rounded-lg border border-border px-4 py-2 text-sm">Go home</a>
+          <a href="/" className="rounded-lg border border-border px-4 py-2 text-sm">
+            Go home
+          </a>
         </div>
       </div>
     </div>
@@ -76,20 +76,40 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "ICT Club of NJBS — Building the future together" },
-      { name: "description", content: "The official ICT Club of Nawa Jyoti English Boarding School. Projects, hackathons, workshops, and a community for young technologists." },
+      {
+        name: "description",
+        content:
+          "The official ICT Club of Nawa Jyoti English Boarding School. Projects, hackathons, workshops, and a community for young technologists.",
+      },
       { name: "author", content: "ICT Club NJBS" },
       { name: "google-site-verification", content: "ApobhGV9jIEedP8jCjznWNKUkIZGJvuZ18Ma04Tdjrw" },
       { name: "robots", content: "index, follow, max-image-preview:large" },
       { property: "og:url", content: "https://njbsictclub.vercel.app/" },
       { property: "og:site_name", content: "ICT Club of NJBS" },
       { property: "og:title", content: "ICT Club of NJBS — Building the future together" },
-      { property: "og:description", content: "The official ICT Club of Nawa Jyoti English Boarding School. Projects, hackathons, workshops, and a community for young technologists." },
+      {
+        property: "og:description",
+        content:
+          "The official ICT Club of Nawa Jyoti English Boarding School. Projects, hackathons, workshops, and a community for young technologists.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "ICT Club of NJBS — Building the future together" },
-      { name: "twitter:description", content: "The official ICT Club of Nawa Jyoti English Boarding School. Projects, hackathons, workshops, and a community for young technologists." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/64757a00-3381-4423-b2c1-c8db9da7ceec" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/64757a00-3381-4423-b2c1-c8db9da7ceec" },
+      {
+        name: "twitter:description",
+        content:
+          "The official ICT Club of Nawa Jyoti English Boarding School. Projects, hackathons, workshops, and a community for young technologists.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/64757a00-3381-4423-b2c1-c8db9da7ceec",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/64757a00-3381-4423-b2c1-c8db9da7ceec",
+      },
       ...(loaderData?.integrations.gscVerification
         ? [{ name: "google-site-verification", content: loaderData.integrations.gscVerification }]
         : []),
@@ -102,7 +122,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "apple-touch-icon", href: "/ictclub-logo.jpg" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
+      },
     ],
   }),
   component: RootComponent,
@@ -121,7 +144,9 @@ function GoogleAnalytics({ measurementId }: { measurementId?: string }) {
     document.head.appendChild(script);
     const w = window as unknown as { dataLayer?: unknown[] };
     w.dataLayer = w.dataLayer || [];
-    const gtag = (...args: unknown[]) => { w.dataLayer!.push(args); };
+    const gtag = (...args: unknown[]) => {
+      w.dataLayer!.push(args);
+    };
     gtag("js", new Date());
     gtag("config", measurementId);
   }, [measurementId]);

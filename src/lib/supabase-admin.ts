@@ -13,9 +13,7 @@ export function getSupabaseAdmin(): SupabaseClient {
   // Prefer the legacy service-role key when both are present. It is the key
   // supported by the Auth Admin API, while newer projects may expose the
   // equivalent opaque secret key instead.
-  const key =
-    process.env["SUPABASE_SERVICE_ROLE_KEY"] ??
-    process.env["SUPABASE_SECRET_KEY"];
+  const key = process.env["SUPABASE_SERVICE_ROLE_KEY"] ?? process.env["SUPABASE_SECRET_KEY"];
 
   if (!url || !key) {
     throw new Error(

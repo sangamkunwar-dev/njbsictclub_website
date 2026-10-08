@@ -304,7 +304,11 @@ function AdminPage() {
                     {adminRecords.map((record) => (
                       <div key={record.id} className="flex flex-wrap items-start gap-3 py-4">
                         <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                          {record.type === "bill" ? <Receipt className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
+                          {record.type === "bill" ? (
+                            <Receipt className="h-5 w-5" />
+                          ) : (
+                            <FileText className="h-5 w-5" />
+                          )}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
@@ -312,40 +316,62 @@ function AdminPage() {
                             <Badge variant="secondary" className="capitalize">
                               {record.type.replace("-", " ")}
                             </Badge>
-                            {record.status && <Badge variant="outline" className="capitalize">{record.status}</Badge>}
+                            {record.status && (
+                              <Badge variant="outline" className="capitalize">
+                                {record.status}
+                              </Badge>
+                            )}
                           </div>
                           <p className="mt-1 text-xs text-muted-foreground">
                             {formatAdminDateOnly(record.date)}
-                            {record.amount !== undefined && ` · Amount: ${record.amount.toLocaleString()}`}
+                            {record.amount !== undefined &&
+                              ` · Amount: ${record.amount.toLocaleString()}`}
                           </p>
-  {record.description && <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{record.description}</p>}
-  {record.attachment && (
-  <a
-  href={record.attachment.url}
-  download={record.attachment.name}
-  target="_blank"
-  rel="noreferrer"
-  className="mt-3 inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium text-primary hover:bg-muted"
-  >
-  <FileText className="h-3.5 w-3.5" />
-  {record.attachment.name} · Download
-  </a>
-  )}
-  </div>
+                          {record.description && (
+                            <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
+                              {record.description}
+                            </p>
+                          )}
+                          {record.attachment && (
+                            <a
+                              href={record.attachment.url}
+                              download={record.attachment.name}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="mt-3 inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs font-medium text-primary hover:bg-muted"
+                            >
+                              <FileText className="h-3.5 w-3.5" />
+                              {record.attachment.name} · Download
+                            </a>
+                          )}
+                        </div>
                         <AdminRecordDialog
                           record={record}
                           onSave={(next) => {
-                            setAdminRecords((previous) => previous.map((item) => item.id === next.id ? next : item));
+                            setAdminRecords((previous) =>
+                              previous.map((item) => (item.id === next.id ? next : item)),
+                            );
                             toast.success("Record updated");
                           }}
-                          trigger={<Button size="sm" variant="outline"><Pencil className="h-3.5 w-3.5" /></Button>}
-                        />
-                        <Button size="sm" variant="ghost" className="text-destructive" onClick={() => {
-                          if (confirm(`Delete "${record.title}"?`)) {
-                            setAdminRecords((previous) => previous.filter((item) => item.id !== record.id));
-                            toast.success("Record deleted");
+                          trigger={
+                            <Button size="sm" variant="outline">
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
                           }
-                        }}>
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive"
+                          onClick={() => {
+                            if (confirm(`Delete "${record.title}"?`)) {
+                              setAdminRecords((previous) =>
+                                previous.filter((item) => item.id !== record.id),
+                              );
+                              toast.success("Record deleted");
+                            }
+                          }}
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -972,23 +998,25 @@ function AdminRecordDialog({
   const [type, setType] = useState<AdminRecord["type"]>(record?.type ?? "event-report");
   const [date, setDate] = useState(record?.date ?? new Date().toISOString().slice(0, 10));
   const [amount, setAmount] = useState(record?.amount?.toString() ?? "");
-  const [status, setStatus] = useState<NonNullable<AdminRecord["status"]>>(record?.status ?? "draft");
+  const [status, setStatus] = useState<NonNullable<AdminRecord["status"]>>(
+    record?.status ?? "draft",
+  );
   const [description, setDescription] = useState(record?.description ?? "");
   const [attachment, setAttachment] = useState(record?.attachment);
   const [uploading, setUploading] = useState(false);
 
   const handleAttachment = async (file: File) => {
-  setUploading(true);
-  try {
-  setAttachment(await uploadRecordAttachment(file));
-  toast.success("File attached");
-  } catch (error) {
-  toast.error(error instanceof Error ? error.message : "File upload failed");
-  } finally {
-  setUploading(false);
-  }
+    setUploading(true);
+    try {
+      setAttachment(await uploadRecordAttachment(file));
+      toast.success("File attached");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "File upload failed");
+    } finally {
+      setUploading(false);
+    }
   };
-  
+
   const save = () => {
     if (!title.trim() || !date) {
       toast.error("Title and date are required");
@@ -1001,9 +1029,9 @@ function AdminRecordDialog({
       date,
       amount: amount ? Number(amount) : undefined,
       status: type === "bill" ? status : undefined,
-  description: description.trim(),
-  attachment,
-  createdAt: record?.createdAt ?? new Date().toISOString(),
+      description: description.trim(),
+      attachment,
+      createdAt: record?.createdAt ?? new Date().toISOString(),
     });
     setOpen(false);
   };
@@ -1018,13 +1046,20 @@ function AdminRecordDialog({
         <div className="grid gap-4 py-2">
           <div className="grid gap-2">
             <Label htmlFor="record-title">Title</Label>
-            <Input id="record-title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. Orientation event report" />
+            <Input
+              id="record-title"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="e.g. Orientation event report"
+            />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
               <Label>Record type</Label>
               <Select value={type} onValueChange={(value) => setType(value as AdminRecord["type"])}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="event-report">Event report</SelectItem>
                   <SelectItem value="project-report">Project report</SelectItem>
@@ -1034,18 +1069,36 @@ function AdminRecordDialog({
             </div>
             <div className="grid gap-2">
               <Label htmlFor="record-date">Date</Label>
-              <Input id="record-date" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+              <Input
+                id="record-date"
+                type="date"
+                value={date}
+                onChange={(event) => setDate(event.target.value)}
+              />
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="record-amount">Amount (optional)</Label>
-              <Input id="record-amount" type="number" min="0" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0.00" />
+              <Input
+                id="record-amount"
+                type="number"
+                min="0"
+                step="0.01"
+                value={amount}
+                onChange={(event) => setAmount(event.target.value)}
+                placeholder="0.00"
+              />
             </div>
             <div className="grid gap-2">
               <Label>Status</Label>
-              <Select value={status} onValueChange={(value) => setStatus(value as NonNullable<AdminRecord["status"]>)}>
-                <SelectTrigger disabled={type !== "bill"}><SelectValue /></SelectTrigger>
+              <Select
+                value={status}
+                onValueChange={(value) => setStatus(value as NonNullable<AdminRecord["status"]>)}
+              >
+                <SelectTrigger disabled={type !== "bill"}>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="draft">Draft</SelectItem>
                   <SelectItem value="submitted">Submitted</SelectItem>
@@ -1055,34 +1108,51 @@ function AdminRecordDialog({
               </Select>
             </div>
           </div>
-  <div className="grid gap-2">
-  <Label htmlFor="record-description">Details</Label>
-  <Textarea id="record-description" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Add summary, vendors, outcomes, or notes..." rows={5} />
-  </div>
-  <div className="grid gap-2">
-  <Label htmlFor="record-attachment">Attach PDF or PNG</Label>
-  <Input
-  id="record-attachment"
-  type="file"
-  accept="application/pdf,image/png"
-  disabled={uploading}
-  onChange={(event) => {
-  const file = event.target.files?.[0];
-  if (file) void handleAttachment(file);
-  event.currentTarget.value = "";
-  }}
-  />
-  <p className="text-xs text-muted-foreground">Optional file for this report or bill. PDF/PNG, maximum 8 MB.</p>
-  {attachment && (
-  <div className="flex items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2 text-sm">
-  <span className="truncate">{attachment.name}</span>
-  <Button type="button" size="sm" variant="ghost" onClick={() => setAttachment(undefined)}>Remove</Button>
-  </div>
-  )}
-  </div>
-  </div>
+          <div className="grid gap-2">
+            <Label htmlFor="record-description">Details</Label>
+            <Textarea
+              id="record-description"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              placeholder="Add summary, vendors, outcomes, or notes..."
+              rows={5}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="record-attachment">Attach PDF or PNG</Label>
+            <Input
+              id="record-attachment"
+              type="file"
+              accept="application/pdf,image/png"
+              disabled={uploading}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) void handleAttachment(file);
+                event.currentTarget.value = "";
+              }}
+            />
+            <p className="text-xs text-muted-foreground">
+              Optional file for this report or bill. PDF/PNG, maximum 8 MB.
+            </p>
+            {attachment && (
+              <div className="flex items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2 text-sm">
+                <span className="truncate">{attachment.name}</span>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setAttachment(undefined)}
+                >
+                  Remove
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
           <Button className="bg-gradient-primary" onClick={save}>
             <WalletCards className="mr-1.5 h-4 w-4" />
             {record ? "Save changes" : "Add record"}
