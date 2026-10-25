@@ -32,12 +32,16 @@ function createServiceClient(url: string, key: string) {
 
 export const createMemberAccountAction = createServerFn({ method: "POST" }).handler(
   async ({ data }: { data: CreateMemberAccountInput }) => {
-    const primaryUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const primaryUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
     const primaryKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const devPulseUrl = process.env.DEVPULSE_SUPABASE_URL;
     const devPulseKey = process.env.DEVPULSE_SUPABASE_SERVICE_ROLE_KEY;
 
     if (!primaryUrl || !primaryKey) {
+      console.error("[member-account-admin] ICT Club Supabase admin credentials are missing.", {
+        hasUrl: Boolean(primaryUrl),
+        hasServiceRoleKey: Boolean(primaryKey),
+      });
       throw new Error("Server is missing the ICT Club Supabase admin credentials.");
     }
     if (!data?.email?.trim() || !data.password || !data.memberId?.trim()) {

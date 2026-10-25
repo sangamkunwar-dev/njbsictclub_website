@@ -54,6 +54,7 @@ export default {
       if (env && typeof env === "object") {
         const runtimeEnv = env as Record<string, unknown>;
         for (const name of [
+          "NEXT_PUBLIC_SUPABASE_URL",
           "SUPABASE_URL",
           "SUPABASE_SERVICE_ROLE_KEY",
           "SUPABASE_SECRET_KEY",
