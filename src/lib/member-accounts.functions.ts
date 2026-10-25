@@ -1,5 +1,3 @@
-import { createServerFn } from "@tanstack/react-start";
-import { createClient } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
 const EDGE_FUNCTION = "member-account-admin";
@@ -13,88 +11,6 @@ type CreateMemberAccountInput = {
   email: string;
   accessToken?: string;
 };
-
-function createServiceClient(url: string, key: string) {
-  return createClient(url, key, {
-    auth: { autoRefreshToken: false, persistSession: false },
-    global: {
-      fetch: (input, init) => {
-        const headers = new Headers(init?.headers);
-        if (key.startsWith("sb_") && headers.get("Authorization") === `Bearer ${key}`) {
-          headers.delete("Authorization");
-        }
-        headers.set("apikey", key);
-        return fetch(input as RequestInfo, { ...init, headers });
-      },
-    },
-  });
-}
-
-export const createMemberAccountAction = createServerFn({ method: "POST" }).handler(
-  async ({ data }: { data: CreateMemberAccountInput }) => {
-    const primaryUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-    const primaryKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const devPulseUrl = process.env.DEVPULSE_SUPABASE_URL;
-    const devPulseKey = process.env.DEVPULSE_SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!primaryUrl || !primaryKey) {
-      console.error("[member-account-admin] ICT Club Supabase admin credentials are missing.", {
-        hasUrl: Boolean(primaryUrl),
-        hasServiceRoleKey: Boolean(primaryKey),
-      });
-      throw new Error("Server is missing the ICT Club Supabase admin credentials.");
-    }
-    if (!data?.email?.trim() || !data.password || !data.memberId?.trim()) {
-      throw new Error("Email, Member ID, and password are required.");
-    }
-
-    const primaryAdmin = createServiceClient(primaryUrl, primaryKey);
-    if (!data.accessToken) throw new Error("Your admin session has expired. Please sign in again.");
-    const { data: sessionUser, error: sessionError } = await primaryAdmin.auth.getUser(
-      data.accessToken,
-    );
-    if (sessionError || sessionUser.user?.email?.toLowerCase() !== ADMIN_EMAIL) {
-      throw new Error("Admin access is required to create member accounts.");
-    }
-
-    const email = data.email.trim().toLowerCase();
-    const metadata = {
-      full_name: data.name.trim(),
-      name: data.name.trim(),
-      role: "member",
-      memberId: data.memberId.trim().toUpperCase(),
-      member_id: data.memberId.trim().toUpperCase(),
-    };
-    const { data: created, error } = await primaryAdmin.auth.admin.createUser({
-      email,
-      password: data.password,
-      email_confirm: true,
-      user_metadata: metadata,
-    });
-    if (error) throw new Error(error.message);
-
-    if (devPulseUrl && devPulseKey) {
-      try {
-        const devPulseAdmin = createServiceClient(devPulseUrl, devPulseKey);
-        const { error: devPulseError } = await devPulseAdmin.auth.admin.createUser({
-          email,
-          password: data.password,
-          email_confirm: true,
-          user_metadata: metadata,
-        });
-        if (devPulseError) {
-          console.error("[member-account-admin] DevPulse user creation failed:", devPulseError);
-        }
-      } catch (devPulseError) {
-        console.error("[member-account-admin] DevPulse user creation threw:", devPulseError);
-      }
-    } else {
-      console.error("[member-account-admin] DevPulse Supabase admin credentials are missing.");
-    }
-
-    return { id: created.user.id };
-  },
-);
 
 type Call<T> = { data?: T };
 
@@ -159,16 +75,24 @@ export const createMemberAccount = async ({
   accessToken?: string;
 }>) => {
   if (!data) throw new Error("Member details are missing. Please complete the form and try again.");
-  return createMemberAccountAction({
-    data: {
+  const response = await fetch("/api/admin/create-user", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
       username: data.username,
       memberId: data.memberId || data.username,
       password: data.password,
       name: data.name,
       email: data.email?.trim().toLowerCase() || "",
       accessToken: data.accessToken,
-    },
+    }),
   });
+  const result = (await response.json().catch(() => null)) as {
+    error?: string;
+    id?: string;
+  } | null;
+  if (!response.ok) throw new Error(result?.error || "Could not create the member account.");
+  return result;
 };
 
 export const updateMemberAccount = async ({
