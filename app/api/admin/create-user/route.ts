@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 const ADMIN_EMAIL = "njbsictclub@gmail.com";
@@ -6,6 +7,7 @@ type CreateUserRequest = {
   email?: string;
   password?: string;
   name?: string;
+  full_name?: string;
   memberId?: string;
   accessToken?: string;
 };
@@ -28,7 +30,7 @@ export async function POST(request: Request) {
         hasUrl: Boolean(primaryUrl),
         hasServiceRoleKey: Boolean(primaryKey),
       });
-      return Response.json(
+      return NextResponse.json(
         { error: "Server is missing the ICT Club Supabase admin credentials." },
         { status: 500 },
       );
@@ -40,13 +42,13 @@ export async function POST(request: Request) {
 
     const body = (await request.json()) as CreateUserRequest;
     if (!body.email?.trim() || !body.password || !body.memberId?.trim()) {
-      return Response.json(
+      return NextResponse.json(
         { error: "Email, Member ID, and password are required." },
         { status: 400 },
       );
     }
     if (!body.accessToken) {
-      return Response.json(
+      return NextResponse.json(
         { error: "Your admin session has expired. Please sign in again." },
         { status: 401 },
       );
@@ -57,7 +59,7 @@ export async function POST(request: Request) {
       body.accessToken,
     );
     if (sessionError || sessionUser.user?.email?.toLowerCase() !== ADMIN_EMAIL) {
-      return Response.json(
+      return NextResponse.json(
         { error: "Admin access is required to create member accounts." },
         { status: 403 },
       );
@@ -65,8 +67,8 @@ export async function POST(request: Request) {
 
     const email = body.email.trim().toLowerCase();
     const metadata = {
-      full_name: body.name?.trim() ?? "",
-      name: body.name?.trim() ?? "",
+      full_name: (body.full_name ?? body.name)?.trim() ?? "",
+      name: (body.full_name ?? body.name)?.trim() ?? "",
       role: "member",
       memberId: body.memberId.trim().toUpperCase(),
       member_id: body.memberId.trim().toUpperCase(),
@@ -78,7 +80,7 @@ export async function POST(request: Request) {
       email_confirm: true,
       user_metadata: metadata,
     });
-    if (error) return Response.json({ error: error.message }, { status: 400 });
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
     if (devPulseUrl && devPulseKey) {
       try {
@@ -97,9 +99,9 @@ export async function POST(request: Request) {
       }
     }
 
-    return Response.json({ id: created.user.id });
+    return NextResponse.json({ id: created.user.id });
   } catch (error) {
     console.error("[create-user] Request failed:", error);
-    return Response.json({ error: "Could not create the member account." }, { status: 500 });
+    return NextResponse.json({ error: "Could not create the member account." }, { status: 500 });
   }
 }

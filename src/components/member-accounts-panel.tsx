@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -16,7 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import {
   listMemberAccounts,
-  createMemberAccount,
   deleteMemberAccount,
   setMemberPassword,
   updateMemberAccount,
@@ -31,7 +31,6 @@ function errMsg(e: unknown) {
 
 export function MemberAccountsPanel() {
   const list = listMemberAccounts;
-  const create = createMemberAccount;
   const remove = deleteMemberAccount;
   const setPwd = setMemberPassword;
   const update = updateMemberAccount;
@@ -135,7 +134,15 @@ export function MemberAccountsPanel() {
             </Button>
             <AccountDialog
               onSave={async (v) => {
-                await create({ data: { ...v, accessToken: await authToken() } });
+                const response = await fetch("/api/admin/create-user", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ ...v, accessToken: await authToken() }),
+                });
+                const result = (await response.json()) as { error?: string };
+                if (!response.ok) {
+                  throw new Error(result.error ?? "Could not create the member account.");
+                }
                 toast.success(`Login created for ${v.username}`);
                 await refresh();
               }}
@@ -357,6 +364,9 @@ function AccountDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogDescription className="sr-only">
+          Create and manage ICT Club member accounts
+        </DialogDescription>
         <DialogHeader>
           <DialogTitle>New member login</DialogTitle>
         </DialogHeader>
@@ -465,6 +475,9 @@ function EditAccountDialog({
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-sm">
+        <DialogDescription className="sr-only">
+          Create and manage ICT Club member accounts
+        </DialogDescription>
         <DialogHeader>
           <DialogTitle>Edit — {account.username}</DialogTitle>
         </DialogHeader>
@@ -549,6 +562,9 @@ function ResetPasswordDialog({
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-sm">
+        <DialogDescription className="sr-only">
+          Create and manage ICT Club member accounts
+        </DialogDescription>
         <DialogHeader>
           <DialogTitle>Change password — {username}</DialogTitle>
         </DialogHeader>
