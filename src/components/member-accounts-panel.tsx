@@ -139,8 +139,20 @@ export function MemberAccountsPanel() {
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ ...v, accessToken: await authToken() }),
                 });
-                const result = (await response.json()) as { error?: string };
                 if (!response.ok) {
+                  const text = await response.text();
+                  let message = text || "Could not create the member account.";
+                  try {
+                    const result = JSON.parse(text) as { error?: string };
+                    message = result.error ?? message;
+                  } catch {
+                    // The server may return an empty or non-JSON error response.
+                  }
+                  throw new Error(message);
+                }
+
+                const result = (await response.json()) as { success?: boolean; error?: string };
+                if (!result.success) {
                   throw new Error(result.error ?? "Could not create the member account.");
                 }
                 toast.success(`Login created for ${v.username}`);

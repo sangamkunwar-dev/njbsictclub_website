@@ -18,8 +18,23 @@ function createServiceClient(url: string, key: string) {
   });
 }
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
+    const { email, password, full_name, name, memberId, accessToken } =
+      (await req.json()) as CreateUserRequest;
+
+    if (!email?.trim() || !password || !memberId?.trim()) {
+      return NextResponse.json(
+        { error: "Email, Member ID, and password are required." },
+        { status: 400 },
+      );
+    }
+    if (!accessToken) {
+      return NextResponse.json(
+        { error: "Your admin session has expired. Please sign in again." },
+        { status: 401 },
+      );
+    }
     const primaryUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const primaryKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const devPulseUrl = process.env.DEVPULSE_SUPABASE_URL;
@@ -40,23 +55,9 @@ export async function POST(request: Request) {
       console.error("[create-user] DevPulse Supabase admin credentials are missing.");
     }
 
-    const body = (await request.json()) as CreateUserRequest;
-    if (!body.email?.trim() || !body.password || !body.memberId?.trim()) {
-      return NextResponse.json(
-        { error: "Email, Member ID, and password are required." },
-        { status: 400 },
-      );
-    }
-    if (!body.accessToken) {
-      return NextResponse.json(
-        { error: "Your admin session has expired. Please sign in again." },
-        { status: 401 },
-      );
-    }
-
     const primaryAdmin = createServiceClient(primaryUrl, primaryKey);
     const { data: sessionUser, error: sessionError } = await primaryAdmin.auth.getUser(
-      body.accessToken,
+      accessToken,
     );
     if (sessionError || sessionUser.user?.email?.toLowerCase() !== ADMIN_EMAIL) {
       return NextResponse.json(
@@ -65,18 +66,19 @@ export async function POST(request: Request) {
       );
     }
 
-    const email = body.email.trim().toLowerCase();
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedMemberId = memberId.trim().toUpperCase();
     const metadata = {
-      full_name: (body.full_name ?? body.name)?.trim() ?? "",
-      name: (body.full_name ?? body.name)?.trim() ?? "",
+      full_name: (full_name ?? name)?.trim() ?? "",
+      name: (full_name ?? name)?.trim() ?? "",
       role: "member",
-      memberId: body.memberId.trim().toUpperCase(),
-      member_id: body.memberId.trim().toUpperCase(),
+      memberId: normalizedMemberId,
+      member_id: normalizedMemberId,
     };
 
     const { data: created, error } = await primaryAdmin.auth.admin.createUser({
-      email,
-      password: body.password,
+      email: normalizedEmail,
+      password,
       email_confirm: true,
       user_metadata: metadata,
     });
@@ -86,8 +88,8 @@ export async function POST(request: Request) {
       try {
         const devPulseAdmin = createServiceClient(devPulseUrl, devPulseKey);
         const { error: devPulseError } = await devPulseAdmin.auth.admin.createUser({
-          email,
-          password: body.password,
+          email: normalizedEmail,
+          password,
           email_confirm: true,
           user_metadata: metadata,
         });
@@ -99,7 +101,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ id: created.user.id });
+    return NextResponse.json({ success: true, user: created.user }, { status: 200 });
   } catch (error) {
     console.error("[create-user] Request failed:", error);
     return NextResponse.json({ error: "Could not create the member account." }, { status: 500 });
