@@ -58,6 +58,8 @@ export default {
           "SUPABASE_SERVICE_ROLE_KEY",
           "SUPABASE_SECRET_KEY",
           "SUPABASE_PUBLISHABLE_KEY",
+          "DEVPULSE_SUPABASE_URL",
+          "DEVPULSE_SUPABASE_SERVICE_ROLE_KEY",
         ]) {
           const value = runtimeEnv[name];
           if (typeof value === "string" && value.length > 0) process.env[name] = value;

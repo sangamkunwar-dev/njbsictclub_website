@@ -1,6 +1,36 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 let cached: SupabaseClient | null = null;
+let devPulseCached: SupabaseClient | null = null;
+
+function createServiceClient(url: string, key: string): SupabaseClient {
+  return createClient(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
+    global: {
+      fetch: (input, init) => {
+        const headers = new Headers(init?.headers);
+        if (key.startsWith("sb_") && headers.get("Authorization") === `Bearer ${key}`) {
+          headers.delete("Authorization");
+        }
+        headers.set("apikey", key);
+        return fetch(input as RequestInfo, { ...init, headers });
+      },
+    },
+  });
+}
+
+export function getDevPulseSupabaseAdmin(): SupabaseClient {
+  if (devPulseCached) return devPulseCached;
+
+  const url = process.env["DEVPULSE_SUPABASE_URL"];
+  const key = process.env["DEVPULSE_SUPABASE_SERVICE_ROLE_KEY"];
+  if (!url || !key) {
+    throw new Error("DevPulse account sync is not configured on the server.");
+  }
+
+  devPulseCached = createServiceClient(url, key);
+  return devPulseCached;
+}
 
 /**
  * Service-role client. Read env inside the call (not at module scope) so the
